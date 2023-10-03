@@ -1,0 +1,87 @@
+[tool.black]
+extend-exclude = '''(migrations)'''
+target-version = ["py311"]
+line-length = 120
+skip-magic-trailing-comma = true
+
+
+
+[tool.pylint.main]
+extension-pkg-whitelist = "pydantic,orjson"
+py-version = "3.11"
+max-line-length = 120
+
+[tool.pylint.messages_control]
+disable = [
+    "arguments-differ", "missing-module-docstring", "missing-class-docstring", "missing-function-docstring",
+    "too-many-locals", "invalid-name", "too-few-public-methods", "broad-exception-caught", "unused-argument",
+    "fixme", "raise-missing-from", "duplicate-code"
+]
+
+
+
+[tool.ruff]
+select = [
+    "A", "C40", "C90", "E", "EM", "F", "FBT", "G", "I", "ICN", "INP", "ISC", "T10", "T20", "PGH", "PIE", "PL", "PYI",
+    "RSE", "RUF", "S", "SIM", "TID", "UP", "W", "YTT"
+]
+
+# RUF100 - Remove unused `noqa` directive
+ignore = ["RUF100"]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["C40", "F401", "I"]
+unfixable = []
+
+mccabe = {"max-complexity" = 9}
+target-version = "py311"
+
+exclude = [
+    "migrations",
+
+    # Exclude a variety of commonly ignored directories.
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv"
+]
+
+allowed-confusables = [
+    "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "Й", "К", "Л", "М", "Н", "О", "П",
+    "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ы", "Ь", "Э", "Ю", "Я",
+    "а", "б", "в", "г", "д", "е", "ё", "ж", "з", "и", "й", "к", "л", "м", "н", "о", "п",
+    "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я"
+]
+line-length = 120
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.per-file-ignores]
+"test*/*" = ["S101", "S106", "PLR0913"]
+"*/model/*" = ["A003"]
+"*/schemas/*" = ["A003"]
+"src/utils/const.py" = ["S105"]
+"src/crud/*" = ["S608", "A002", "A001"]
+
+
+
+[tool.pytest.ini_options]
+markers = [
+    "fixt_data",
+]
