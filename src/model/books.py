@@ -12,12 +12,12 @@ class Book(Base):
     guid = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
     name = Column(String, comment="Название книги")
     authors = Column(JSONB, comment="Список авторов")
-    status = Column(UUIDType(binary=False), comment="Статус книги")
     publication_date = Column(DateTime, comment="Дата публикации")
     rating = Column(Float, comment="Оценка пользователей")
     quantity = Column(Integer, default=0, comment="Количество экземпляров")
     cover = Column(String, comment="Обложка книги")
     isbn = Column(String, comment="ISBN - книги")
+    genre = Column(JSONB, comment="Жанры")
 
 
 class Author(Base):
