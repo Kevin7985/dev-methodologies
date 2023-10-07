@@ -1,12 +1,12 @@
 from uuid import UUID
 
-from sqlalchemy import and_, case, select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
-from src.model.books import Author, Book
+from src.model.books import Book
 from src.schemas.books import BookListFilter
-from src.utils.common_queries import build_json_agg_subquery, build_jsonb_filter
+from src.utils.common_queries import build_jsonb_filter
 from src.utils.const import GenreEnum
 
 
@@ -31,7 +31,7 @@ class DBBook(CRUD):
     async def delete(self, *args):
         pass
 
-    async def get_filtered(self, book_filter: BookListFilter, genre: list[GenreEnum] | None, authors: list[UUID] | None):
+    def get_filtered(self, book_filter: BookListFilter, genre: list[GenreEnum] | None, authors: list[UUID] | None):
         query_filter = True
         if genre:
             genre_filter = build_jsonb_filter(jsonb_column=Book.genre, sought_values=genre)
@@ -39,19 +39,23 @@ class DBBook(CRUD):
         if authors:
             authors_filter = build_jsonb_filter(jsonb_column=Book.authors, sought_values=authors)
             query_filter = and_(query_filter, authors_filter)
-            authors_names = build_json_agg_subquery(jsonb_column=Book.authors, joined_model=Author, agg_column=Author.name)
+
         query = book_filter.filter(
             select(
                 Book.guid,
                 Book.name,
                 Book.authors,
-                (authors_names).label("authors_names"),
                 Book.publication_date,
                 Book.rating,
                 Book.quantity,
                 Book.cover,
                 Book.isbn,
+                Book.genre,
             )
             .filter(query_filter)
-            )
+            .order_by(Book.rating.desc())
+        )
+        if book_filter.order_by:
+            query = book_filter.sort(query)
+
         return query
