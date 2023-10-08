@@ -26,9 +26,20 @@ class Book(BaseModel):
 class BookListFilter(Filter):
     guid__in: list[UUID] | None = Field(alias="guids")
     order_by: list[str] | None
+    name__ilike: str | None = Field(alias="book_title")
 
     class Constants(Filter.Constants):
         model = m_Book
 
     class Config:
         allow_population_by_field_name = True
+
+
+class Author(BaseModel):
+    guid: UUID
+    name: str | None
+    last_name: str | None
+    patronymic: str | None
+
+    class Config:
+        orm_mode = True
