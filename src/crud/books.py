@@ -2,11 +2,12 @@ from uuid import UUID
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.functions import concat
 
 from src.crud.base import CRUD
-from src.model.books import Book
+from src.model.books import Author, Book
 from src.schemas.books import BookListFilter
-from src.utils.common_queries import build_jsonb_filter
+from src.utils.common_queries import build_json_agg_subquery, build_jsonb_filter
 from src.utils.const import GenreEnum
 
 
@@ -40,11 +41,17 @@ class DBBook(CRUD):
             authors_filter = build_jsonb_filter(jsonb_column=Book.authors, sought_values=authors)
             query_filter = and_(query_filter, authors_filter)
 
+        authors_names = build_json_agg_subquery(
+            jsonb_column=Book.authors,
+            joined_model=Author,
+            agg_column=concat(Author.last_name, " ", Author.name, " ", Author.patronymic),
+        )
         query = book_filter.filter(
             select(
                 Book.guid,
                 Book.name,
                 Book.authors,
+                (authors_names).label("authors_names"),
                 Book.publication_date,
                 Book.rating,
                 Book.quantity,
