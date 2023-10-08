@@ -11,6 +11,7 @@ class Book(BaseModel):
     guid: UUID
     name: str | None
     authors: list[UUID] | None
+    authors_names: list[str] | None
     publication_date: datetime | None
     rating: float | None
     quantity: int | None
