@@ -1,7 +1,6 @@
 import uuid
-from datetime import datetime
 
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, String
 from sqlalchemy.orm import validates
 from sqlalchemy_utils import UUIDType
 
@@ -18,7 +17,6 @@ class User(Base):
     password = Column(String, nullable=False)
     phone = Column(String, comment="Телефон пользователя")
     avatar = Column(String, comment="Аватар пользователя")
-    
 
     @validates("email")
     def email_validation(self, key, email):

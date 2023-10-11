@@ -1,11 +1,12 @@
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Float, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, DateTime, Float, String
 from sqlalchemy_utils import UUIDType
 
 from src.database import Base
 from src.utils.const import PostTypeEnum
+
 
 class Post(Base):
     __tablename__ = "posts"
@@ -17,8 +18,8 @@ class Post(Base):
     image = Column(String, comment="Путь до изображения")
     book_id = Column(UUIDType(binary=False), nullable=False, default=uuid.uuid4)
     book_rating = Column(Float, comment="Рейтинг книги")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.utcnow())
 
 
 class PostComment(Base):
@@ -27,4 +28,4 @@ class PostComment(Base):
     comment = Column(String, comment="Текст комментария")
     user_id = Column(UUIDType(binary=False), nullable=False, default=uuid.uuid4)
     post_id = Column(UUIDType(binary=False), nullable=False, default=uuid.uuid4)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow())

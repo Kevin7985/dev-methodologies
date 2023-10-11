@@ -1,9 +1,10 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, Float, Integer, String
+from sqlalchemy import Column, Float, String
 from sqlalchemy_utils import UUIDType
 
 from src.database import Base
+
 
 class BookcrossingPoint(Base):
     __tablename__ = "bookcrossing_points"
