@@ -21,7 +21,7 @@ class Post(Base):
     updated_at = Column(DateTime, default=datetime.utcnow)
 
 
-class PostComments(Base):
+class PostComment(Base):
     __tablename__ = "comments"
     id = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
     comment = Column(String, comment="Текст комментария")
