@@ -9,7 +9,7 @@ from src.database import Base
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
+    guid = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
     login = Column(String, nullable=False, comment="Логин пользователя")
     name = Column(String, comment="Имя пользователя")
     about = Column(String, comment="Описание пользователя")

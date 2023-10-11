@@ -8,7 +8,7 @@ from src.database import Base
 
 class Book(Base):
     __tablename__ = "books"
-    id = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
+    guid = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
     title = Column(String, comment="Название книги")
     description = Column(String, comment="Описание книги")
     rating = Column(Float, comment="Оценка пользователей")
@@ -18,7 +18,7 @@ class Book(Base):
 
 class Author(Base):
     __tablename__ = "authors"
-    id = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
+    guid = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
     name = Column(String, comment="Имя автора")
     surname = Column(String, comment="Фамилия автора")
     patronymic = Column(String, comment="Отчество автора")
@@ -26,7 +26,7 @@ class Author(Base):
 
 class Genre(Base):
     __tablename__ = "genres"
-    id = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
+    guid = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
     title = Column(String, comment="Название жанра")
 
 
