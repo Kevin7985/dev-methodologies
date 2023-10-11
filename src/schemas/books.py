@@ -9,15 +9,33 @@ from src.model.books import Book as m_Book
 from src.model.books import Genre
 
 
+class Author(BaseModel):
+    guid: UUID
+    name: str | None
+    surname: str | None
+    patronymic: str | None
+
+    class Config:
+        orm_mode = True
+
+
+class Genre(BaseModel):
+    guid: UUID
+    name: str
+
+    class Config:
+        orm_mode = True
+
+
 class Book(BaseModel):
     guid: UUID
     title: str | None
-    authors: list[str] | None
+    authors: list[Author]
     rating: float | None
     pic_file_name: str | None
     description: str | None
     isbn: str | None
-    genres: list[str] | None | Any
+    genres: list[Genre]
 
     class Config:
         orm_mode = True
@@ -44,13 +62,3 @@ class BookListFilter(Filter):
 
     class Config:
         allow_population_by_field_name = True
-
-
-class Author(BaseModel):
-    guid: UUID
-    name: str | None
-    last_name: str | None
-    patronymic: str | None
-
-    class Config:
-        orm_mode = True
