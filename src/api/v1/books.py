@@ -1,7 +1,8 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query
+from fastapi.responses import JSONResponse
 from fastapi_filter import FilterDepends
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
@@ -31,11 +32,11 @@ async def get_book_by_id(db: DB, book_id):
     try:
         book_uuid = uuid.UUID(book_id)
     except:
-        raise HTTPException(status_code=400, detail="Invalid book_id")
+        return JSONResponse(status_code=400, content={"error": {"code": 400, "message": "Invalid book_id"}})
     
     result = await crud_book.get(db, book_uuid)
     if not result:
-        raise HTTPException(status_code=404, detail="Book not found")
+        return JSONResponse(status_code=404, content={"error": {"code": 404, "message": "Book not found"}})
 
     return result
 
@@ -46,11 +47,11 @@ async def delete_book_by_id(db: DB, book_id):
     try:
         book_uuid = uuid.UUID(book_id)
     except:
-        raise HTTPException(status_code=400, detail="Invalid book_id")
+        return JSONResponse(status_code=400, content={"error": {"code": 400, "message": "Invalid book_id"}})
     
     state = await crud_book.delete(db, book_uuid)
     if not state:
-        raise HTTPException(status_code=404, detail="Book not found")
+        return JSONResponse(status_code=404, content={"error": {"code": 404, "message": "Book not found"}})
 
     return {"status": "ok"}
 
