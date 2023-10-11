@@ -8,8 +8,8 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 from src.api.dependency import DB
-from src.crud.books import DBAuthor, DBBook
-from src.schemas.books import Author, Book, BookListFilter
+from src.crud.books import DBAuthor, DBBook, DBGenre
+from src.schemas.books import Author, Genre, Book, BookListFilter
 
 router = APIRouter(prefix="/books", tags=["books"], responses={404: {"description": "Not found"}})
 DEFAULT_LIST_GENRES = Query(default=None, description="List of genres")
@@ -17,8 +17,18 @@ DEFAULT_AUTHOR_STRING = Query(default=None, description="Author's name")
 
 crud_book = DBBook()
 crud_authors = DBAuthor()
+crud_genres = DBGenre()
 
 _CollectionOfOfferFilter = Annotated[BookListFilter, FilterDepends(BookListFilter)]
+
+@router.get("/authors", summary="Список всех авторов", response_model=list[Author])
+async def get_authors(db: DB):
+    return await crud_authors.get_all(db)
+
+
+@router.get("/genres", summary="Список всех жанров", response_model=list[Genre])
+async def get_genres(db: DB):
+    return await crud_genres.get_all(db)
 
 
 @router.get("/all", summary="Список всех книг", response_model=Page[Book])
@@ -54,8 +64,3 @@ async def delete_book_by_id(db: DB, book_id):
         return JSONResponse(status_code=404, content={"error": {"code": 404, "message": "Book not found"}})
 
     return {"status": "ok"}
-
-
-@router.get("/authors", summary="Список всех авторов", response_model=list[Author])
-async def get_authors(db: DB):
-    return await crud_authors.get_all(db)

@@ -125,3 +125,13 @@ class DBAuthor(CRUD):
 
     async def delete(self, *args):
         pass
+
+
+class DBGenre(CRUD):
+    async def get(self, db: AsyncSession, guid: UUID) -> Genre | None:
+        result = await db.execute(select(Genre).filter(Genre.guid == guid))
+        return result.scalars().one_or_none()
+
+    async def get_all(self, db: AsyncSession) -> list[Genre]:
+        result = await db.execute(select(Genre))
+        return result.scalars().all()
