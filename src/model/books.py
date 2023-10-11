@@ -27,7 +27,7 @@ class Author(Base):
 class Genre(Base):
     __tablename__ = "genres"
     guid = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
-    title = Column(String, comment="Название жанра")
+    name = Column(String, comment="Название жанра")
 
 
 class Book_Author(Base):
