@@ -54,8 +54,15 @@ class DBBook(CRUD):
     async def update(self, *args):
         pass
 
-    async def delete(self, *args):
-        pass
+    async def delete(self, db: AsyncSession, guid: UUID) -> bool:
+        Book = await self.get(db, guid)
+        if not Book:
+            return False
+
+        await db.delete(Book)
+        await db.flush()
+        await db.commit()
+        return True
 
     def get_filtered(self, book_filter: BookListFilter, author_name: str | None):
         query_filter = True

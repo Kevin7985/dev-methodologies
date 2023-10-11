@@ -40,6 +40,21 @@ async def get_book_by_id(db: DB, book_id):
     return result
 
 
+@router.delete("/{book_id}", summary="Удаление книги по guid")
+async def delete_book_by_id(db: DB, book_id):
+    book_uuid = None
+    try:
+        book_uuid = uuid.UUID(book_id)
+    except:
+        raise HTTPException(status_code=400, detail="Invalid book_id")
+    
+    state = await crud_book.delete(db, book_uuid)
+    if not state:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    return {"status": "ok"}
+
+
 @router.get("/authors", summary="Список всех авторов", response_model=list[Author])
 async def get_authors(db: DB):
     return await crud_authors.get_all(db)
