@@ -10,14 +10,15 @@ from src.database import Base
 
 class User(Base):
     __tablename__ = "users"
-    guid = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
-    nickname = Column(String, nullable=False)
+    id = Column(UUIDType(binary=False), nullable=False, unique=True, primary_key=True, index=True, default=uuid.uuid4)
+    login = Column(String, nullable=False, comment="Логин пользователя")
+    name = Column(String, comment="Имя пользователя")
+    about = Column(String, comment="Описание пользователя")
     email = Column(String, unique=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
     password = Column(String, nullable=False)
-    account_status = Column(String, nullable=False)
-    about = Column(String)
-    avatar = Column(String)
+    phone = Column(String, comment="Телефон пользователя")
+    avatar = Column(String, comment="Аватар пользователя")
+    
 
     @validates("email")
     def email_validation(self, key, email):
