@@ -7,22 +7,18 @@ from sqlalchemy.sql.functions import concat
 from src.crud.base import CRUD
 from src.model.books import Author, Book, Book_Author, Book_Genre, Genre
 from src.schemas.books import BookListFilter
-from src.utils.common_queries import build_json_agg_subquery, build_jsonb_filter
-from src.utils.const import GenreEnum
+
 
 def build_genres(query):
     query_alias = query.alias(name="main_query")
     initial_requirements_query = (  # noqa: ECE001
-        select(
-            query_alias.c.guid,
-            func.json_agg(tuple_(Genre.guid, Genre.name)).label("genres"),
-        )
-        .join(Book_Genre, Book_Genre.book_id == query_alias.c.guid
-        ).join(Genre, Genre.guid == Book_Genre.genre_id
-        )
+        select(query_alias.c.guid, func.json_agg(tuple_(Genre.guid, Genre.name)).label("genres"))
+        .join(Book_Genre, Book_Genre.book_id == query_alias.c.guid)
+        .join(Genre, Genre.guid == Book_Genre.genre_id)
         .group_by(query_alias.c.guid)
     )
     return initial_requirements_query
+
 
 class DBBook(CRUD):
     async def get(self, db: AsyncSession, guid: UUID) -> Book | None:
@@ -47,18 +43,22 @@ class DBBook(CRUD):
 
     def get_filtered(self, book_filter: BookListFilter, author_name: str | None):
         query_filter = True
-        
+
         if author_name:
-            author_name_filter = cast(concat(Author.surname, " ", Author.name, " ", Author.patronymic), String).ilike(f"%{author_name}%")
+            author_name_filter = cast(concat(Author.surname, " ", Author.name, " ", Author.patronymic), String).ilike(
+                f"%{author_name}%"
+            )
             query_filter = and_(query_filter, author_name_filter)
-            
-        query = book_filter.filter(
+
+        query = book_filter.filter(  # noqa: ECE001
             select(
                 Book.guid,
                 Book.title,
                 Book.description,
                 func.json_agg(distinct(Genre.name)).label("genres"),
-                func.json_agg(distinct(concat(Author.surname, " ", Author.name, " ", Author.patronymic))).label("authors"),
+                func.json_agg(distinct(concat(Author.surname, " ", Author.name, " ", Author.patronymic))).label(
+                    "authors"
+                ),
                 Book.rating,
                 Book.pic_file_name,
                 Book.isbn,
@@ -68,9 +68,7 @@ class DBBook(CRUD):
             .join(Genre, Genre.guid == Book_Genre.genre_id)
             .join(Book_Author, Book_Author.book_id == Book.guid)
             .join(Author, Book_Author.author_id == Author.guid)
-            .group_by(
-                Book.guid,
-            )
+            .group_by(Book.guid)
         )
         if book_filter.order_by:
             query = book_filter.sort(query)

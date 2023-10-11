@@ -1,12 +1,12 @@
-from datetime import datetime
 from typing import Any
 from uuid import UUID
-from fastapi_filter import FilterDepends
 
+from fastapi_filter import FilterDepends
 from fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel, Field
 
-from src.model.books import Book as m_Book, Genre
+from src.model.books import Book as m_Book
+from src.model.books import Genre
 
 
 class Book(BaseModel):
@@ -38,6 +38,7 @@ class BookListFilter(Filter):
     order_by: list[str] | None
     title__ilike: str | None = Field(alias="book_title")
     genres: GenreFilter = FilterDepends(GenreFilter)
+
     class Constants(Filter.Constants):
         model = m_Book
 
