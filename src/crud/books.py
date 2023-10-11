@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import String, and_, cast, distinct, func, select, tuple_
+from sqlalchemy import String, and_, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import concat
 
@@ -12,9 +12,25 @@ from src.schemas.books import BookListFilter
 def build_genres(query):
     query_alias = query.alias(name="main_query")
     initial_requirements_query = (  # noqa: ECE001
-        select(query_alias.c.guid, func.json_agg(tuple_(Genre.guid, Genre.name)).label("genres"))
+        select(query_alias.c.guid, func.json_agg(Genre.name).label("genres"))
+        .select_from(query_alias)
         .join(Book_Genre, Book_Genre.book_id == query_alias.c.guid)
         .join(Genre, Genre.guid == Book_Genre.genre_id)
+        .group_by(query_alias.c.guid)
+    )
+    return initial_requirements_query
+
+
+def build_authors(query):
+    query_alias = query.alias(name="main_query")
+    initial_requirements_query = (  # noqa: ECE001
+        select(
+            query_alias.c.guid,
+            func.json_agg(concat(Author.surname, " ", Author.name, " ", Author.patronymic)).label("authors"),
+        )
+        .select_from(query_alias)
+        .join(Book_Author, Book_Author.book_id == query_alias.c.guid)
+        .join(Author, Book_Author.author_id == Author.guid)
         .group_by(query_alias.c.guid)
     )
     return initial_requirements_query
@@ -51,18 +67,7 @@ class DBBook(CRUD):
             query_filter = and_(query_filter, author_name_filter)
 
         query = book_filter.filter(  # noqa: ECE001
-            select(
-                Book.guid,
-                Book.title,
-                Book.description,
-                func.json_agg(distinct(Genre.name)).label("genres"),
-                func.json_agg(distinct(concat(Author.surname, " ", Author.name, " ", Author.patronymic))).label(
-                    "authors"
-                ),
-                Book.rating,
-                Book.pic_file_name,
-                Book.isbn,
-            )
+            select(Book.guid, Book.title, Book.description, Book.rating, Book.pic_file_name, Book.isbn)
             .filter(query_filter)
             .join(Book_Genre, Book_Genre.book_id == Book.guid)
             .join(Genre, Genre.guid == Book_Genre.genre_id)
@@ -72,6 +77,18 @@ class DBBook(CRUD):
         )
         if book_filter.order_by:
             query = book_filter.sort(query)
+
+        query_alias = query.alias(name="main_query")
+
+        genres_query = build_genres(query_alias)
+        genres_query_alias = genres_query.alias(name="genres_query")
+        authors_query = build_authors(query_alias)
+        authors_query_alias = authors_query.alias(name="authors_query")
+        query = (
+            select(query_alias, genres_query_alias.c.genres, authors_query_alias.c.authors)
+            .join(genres_query_alias, genres_query_alias.c.guid == query_alias.c.guid)
+            .join(authors_query_alias, authors_query_alias.c.guid == query_alias.c.guid)
+        )
 
         return query
 
