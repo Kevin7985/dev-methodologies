@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 from uuid import UUID
 
 from fastapi_filter import FilterDepends
@@ -52,10 +52,10 @@ class GenreFilter(Filter):
 
 
 class BookListFilter(Filter):
-    guid__in: list[UUID] | None = Field(alias="guids")
     order_by: list[str] | None
     title__ilike: str | None = Field(alias="book_title")
     genres: GenreFilter = FilterDepends(GenreFilter)
+    author__ilike: str | None = Field(alias="book_authors")
 
     class Constants(Filter.Constants):
         model = m_Book

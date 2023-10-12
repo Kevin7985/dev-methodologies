@@ -20,9 +20,17 @@ crud_book = DBBook()
 _CollectionOfOfferFilter = Annotated[BookListFilter, FilterDepends(BookListFilter)]
 
 
-@router.get("/all", summary="Список всех книг", response_model=Page[Book])
-async def get_all(db: DB, book_filter: _CollectionOfOfferFilter, author_name: str | None = DEFAULT_AUTHOR_STRING):
-    return await paginate(db, crud_book.get_filtered(book_filter=book_filter, author_name=author_name), unique=False)
+@router.get("/all", summary="Список всех книг")
+async def get_all(db: DB, book_filter: BookListFilter = FilterDepends(BookListFilter)):
+    res = await crud_book.get_books_filtered(db, book_filter)
+    # print(res)
+    return res
+
+
+# @router.get("/all", summary="Список всех книг", response_model=Page[Book])
+# async def get_all(db: DB, book_filter: _CollectionOfOfferFilter, author_name: str | None = DEFAULT_AUTHOR_STRING):
+#     print(book_filter)
+#     return await paginate(db, crud_book.get_filtered(book_filter=book_filter, author_name=author_name), unique=False)
 
 
 @router.get("/{book_id}", summary="Получение книги по guid", response_model=Book)
