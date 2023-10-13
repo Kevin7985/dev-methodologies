@@ -9,7 +9,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from src.api.dependency import DB
 from src.config import log
 from src.crud.base import CRUDObject
-from src.crud.books import DBAuthor, DBBook
+from src.crud.books import DBAuthor, DBBook, DBBookAuthor, DBBookGenre
 from src.model.books import Book as m_Book
 from src.model.books import Book_Author, Book_Genre
 from src.schemas.books import Author, BookIn, BookListFilter, BookOut
@@ -22,6 +22,8 @@ DEFAULT_AUTHOR_STRING = Query(default=None, description="Author's name")
 crud_book = DBBook()
 crud_authors = DBAuthor()
 crud_objects = CRUDObject()
+crud_book_genre = DBBookGenre()
+crud_book_author = DBBookAuthor()
 
 _CollectionOfOfferFilter = Annotated[BookListFilter, FilterDepends(BookListFilter)]
 
@@ -54,6 +56,19 @@ async def add_book_to_db(db: DB, book: BookIn):
         await log.aerror("%s @ %s", repr(e), book)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить книгу в БД")
     return created_book
+
+
+@router.post("/delete", summary="Удалить книгу", status_code=status.HTTP_200_OK)
+async def delete_book(db: DB, guid: UUID):
+    if not (db_book := await crud_book.get(db=db, guid=guid)):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
+    try:
+        await crud_book_genre.delete_by_book(db, db_book.guid)
+        await crud_book_author.delete_by_book(db, db_book.guid)
+        await crud_book.delete(db=db, obj=db_book)
+    except Exception as e:
+        await log.aerror("%s", repr(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось удалить книгу")
 
 
 @router.get("/authors", summary="Список всех авторов", response_model=list[Author])

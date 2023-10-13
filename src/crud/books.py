@@ -54,8 +54,9 @@ class DBBook(CRUD):
     async def update(self, *args):
         pass
 
-    async def delete(self, *args):
-        pass
+    async def delete(self, db: AsyncSession, obj: Book):
+        await db.delete(obj)
+        await db.commit()
 
     def get_filtered(self, book_filter: BookListFilter, author_name: str | None):
         query_filter = True
@@ -131,3 +132,53 @@ class DBGenre(CRUD):
 
     async def delete(self, *args):
         pass
+
+
+class DBBookAuthor(CRUD):
+    async def get(self, db: AsyncSession, guid: UUID) -> Book_Author | None:
+        pass
+
+    async def get_all(self, db: AsyncSession) -> list[Book_Author]:
+        result = await db.execute(select(Book_Author))
+        return result.scalars().all()
+
+    async def get_by_book(self, db: AsyncSession, book_guid: UUID) -> list[Book_Author]:
+        result = await db.execute(select(Book_Author).filter(Book_Author.book_id == book_guid))
+        return result.scalars().all()
+
+    async def update(self, *args):
+        pass
+
+    async def delete(self, db: AsyncSession, obj: Book_Author):
+        await db.delete(obj)
+        await db.commit()
+
+    async def delete_by_book(self, db: AsyncSession, book_guid: UUID):
+        objects = await self.get_by_book(db, book_guid)
+        for obj in objects:
+            await self.delete(db, obj)
+
+
+class DBBookGenre(CRUD):
+    async def get(self, db: AsyncSession, guid: UUID) -> Book_Genre | None:
+        pass
+
+    async def get_all(self, db: AsyncSession) -> list[Book_Genre]:
+        result = await db.execute(select(Book_Genre))
+        return result.scalars().all()
+
+    async def get_by_book(self, db: AsyncSession, book_guid: UUID) -> list[Book_Genre]:
+        result = await db.execute(select(Book_Genre).filter(Book_Genre.book_id == book_guid))
+        return result.scalars().all()
+
+    async def update(self, *args):
+        pass
+
+    async def delete(self, db: AsyncSession, obj: Book_Genre):
+        await db.delete(obj)
+        await db.commit()
+
+    async def delete_by_book(self, db: AsyncSession, book_guid: UUID):
+        objects = await self.get_by_book(db, book_guid)
+        for obj in objects:
+            await self.delete(db, obj)
