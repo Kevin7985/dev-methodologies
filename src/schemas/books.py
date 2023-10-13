@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi_filter import FilterDepends
@@ -9,18 +8,36 @@ from src.model.books import Book as m_Book
 from src.model.books import Genre
 
 
-class Book(BaseModel):
-    guid: UUID
-    title: str | None
-    authors: list[str] | None
-    rating: float | None
+class BookBase(BaseModel):
+    title: str
     pic_file_name: str | None
     description: str | None
     isbn: str | None
-    genres: list[str] | None | Any
+
+
+class BookOut(BookBase):
+    guid: UUID
+    authors: list[str] | None
+    rating: float | None
+    genres: list[str] | None
 
     class Config:
         orm_mode = True
+
+
+class BookIn(BaseModel):
+    book_fields: BookBase
+    authors: list[UUID]
+    genres: list[UUID]
+
+
+class Book(BaseModel):
+    guid: UUID
+    title: str
+    pic_file_name: str | None
+    description: str | None
+    isbn: str | None
+    rating: float | None
 
 
 class GenreFilter(Filter):

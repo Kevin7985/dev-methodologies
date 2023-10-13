@@ -45,11 +45,11 @@ class DBBook(CRUD):
         result = await db.execute(select(Book))
         return result.scalars().all()
 
-    async def create(self, db: AsyncSession, Book: Book) -> Book:
-        db.add(Book)
+    async def create(self, db: AsyncSession, book: Book) -> Book:
+        db.add(book)
         await db.flush()
         await db.commit()
-        return Book
+        return book
 
     async def update(self, *args):
         pass
@@ -102,11 +102,29 @@ class DBAuthor(CRUD):
         result = await db.execute(select(Author).order_by(Author.surname))
         return result.scalars().all()
 
-    async def create(self, db: AsyncSession, Book: Book) -> Book:
-        db.add(Book)
-        await db.flush()
-        await db.commit()
-        return Book
+    async def get_many(self, db: AsyncSession, guids: list[UUID]) -> list[Author]:
+        result = await db.execute(select(Author).filter(Author.guid.in_(guids)))
+        return result.scalars().all()
+
+    async def update(self, *args):
+        pass
+
+    async def delete(self, *args):
+        pass
+
+
+class DBGenre(CRUD):
+    async def get(self, db: AsyncSession, guid: UUID) -> Genre | None:
+        result = await db.execute(select(Genre).filter(Genre.guid == guid))
+        return result.scalars().one_or_none()
+
+    async def get_all(self, db: AsyncSession) -> list[Genre]:
+        result = await db.execute(select(Genre).order_by(Genre.name))
+        return result.scalars().all()
+
+    async def get_many(self, db: AsyncSession, guids: list[UUID]) -> list[Genre]:
+        result = await db.execute(select(Genre).filter(Genre.guid.in_(guids)))
+        return result.scalars().all()
 
     async def update(self, *args):
         pass
