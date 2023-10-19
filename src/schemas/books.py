@@ -22,6 +22,9 @@ class Genre(BaseModel):
     guid: UUID
     name: str | None
 
+    class Config:
+        orm_mode = True
+
 
 class BookBase(BaseModel):
     title: str
