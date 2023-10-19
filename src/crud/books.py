@@ -121,6 +121,12 @@ class DBAuthor(CRUD):
         result = await db.execute(select(Author).filter(Author.guid.in_(guids)))
         return result.scalars().all()
 
+    async def create(self, db: AsyncSession, author: Author) -> Author:
+        db.add(author)
+        await db.flush()
+        await db.commit()
+        return author
+
     async def update(self, *args):
         pass
 

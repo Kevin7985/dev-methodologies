@@ -8,6 +8,12 @@ from src.model.books import Book as m_Book
 from src.model.books import Genre as m_Genre
 
 
+class AuthorBase(BaseModel):
+    name: str | None
+    surname: str | None
+    patronymic: str | None
+
+
 class Author(BaseModel):
     guid: UUID
     name: str | None
