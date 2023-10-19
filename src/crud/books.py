@@ -60,11 +60,14 @@ class DBBook(CRUD):
         result = await db.execute(select(Book))
         return result.scalars().all()
 
-    async def create(self, db: AsyncSession, book: Book) -> Book:
+    async def create(self, db: AsyncSession, book: Book, with_commit=False) -> Book:
         db.add(book)
         await db.flush()
-        await db.commit()
-        return book
+
+        if with_commit:
+            await db.commit()
+
+        return await self.get(book.guid)
 
     async def update(self, *args):
         pass

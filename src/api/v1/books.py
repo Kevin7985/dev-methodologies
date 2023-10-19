@@ -43,15 +43,21 @@ async def add_authors_book_rows(db: DB, book_guid: UUID, authors: list[UUID]):
         await crud_objects.create(db=db, created_obj=Book_Author(book_id=book_guid, author_id=author))
 
 
-@router.post("/create", status_code=status.HTTP_201_CREATED)
+@router.post("/create", summary="Создание новой книги", status_code=status.HTTP_201_CREATED)
 async def add_book_to_db(db: DB, book: BookIn):
     await get_authors_or_fail(db, book.authors)
     await get_genres_or_fail(db, book.genres)
     try:
-        book_model = m_Book(**(book.book_fields.dict()))
+        book1 = book.dict()
+        del book1["authors"]
+        del book1["genres"]
+
+        book_model = m_Book(**(book1))
         created_book = await crud_book.create(db=db, book=book_model)
         await add_genre_book_rows(db=db, book_guid=created_book.guid, genres=book.genres)
         await add_authors_book_rows(db=db, book_guid=created_book.guid, authors=book.authors)
+
+        await db.commit()
     except Exception as e:
         await log.aerror("%s @ %s", repr(e), book)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить книгу в БД")
