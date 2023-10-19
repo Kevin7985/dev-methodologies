@@ -12,7 +12,14 @@ from src.schemas.books import BookListFilter
 def build_genres(query):
     query_alias = query.alias(name="main_query")
     initial_requirements_query = (  # noqa: ECE001
-        select(query_alias.c.guid, func.json_agg(Genre.name).label("genres"))
+        select(query_alias.c.guid, func.json_agg(
+            func.json_build_object(
+                'guid',
+                Genre.guid,
+                'name',
+                Genre.name
+            )
+        ).label("genres"))
         .select_from(query_alias)
         .join(Book_Genre, Book_Genre.book_id == query_alias.c.guid)
         .join(Genre, Genre.guid == Book_Genre.genre_id)
@@ -24,10 +31,18 @@ def build_genres(query):
 def build_authors(query):
     query_alias = query.alias(name="main_query")
     initial_requirements_query = (  # noqa: ECE001
-        select(
-            query_alias.c.guid,
-            func.json_agg(concat(Author.surname, " ", Author.name, " ", Author.patronymic)).label("authors"),
-        )
+        select(query_alias.c.guid, func.json_agg(
+            func.json_build_object(
+                'guid',
+                Author.guid,
+                'name',
+                Author.name,
+                'surname',
+                Author.surname,
+                'patronymic',
+                Author.patronymic
+            )
+        ).label("authors"))
         .select_from(query_alias)
         .join(Book_Author, Book_Author.book_id == query_alias.c.guid)
         .join(Author, Book_Author.author_id == Author.guid)
