@@ -69,8 +69,3 @@ async def delete_book(db: DB, guid: UUID):
     except Exception as e:
         await log.aerror("%s", repr(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось удалить книгу")
-
-
-@router.get("/authors", summary="Список всех авторов", response_model=list[Author])
-async def get_authors(db: DB):
-    return await crud_authors.get_all(db)
