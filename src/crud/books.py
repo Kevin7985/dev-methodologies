@@ -147,6 +147,12 @@ class DBGenre(CRUD):
         result = await db.execute(select(Genre).filter(Genre.guid.in_(guids)))
         return result.scalars().all()
 
+    async def create(self, db: AsyncSession, genre: Genre) -> Genre:
+        db.add(genre)
+        await db.flush()
+        await db.commit()
+        return genre
+
     async def update(self, *args):
         pass
 

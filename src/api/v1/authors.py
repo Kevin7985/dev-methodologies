@@ -24,7 +24,6 @@ async def create_author(db: DB, author: AuthorBase):
     try:
         author_model = m_author(**(author.dict()))
         created_author = await crud_authors.create(db, author_model)
-        print(created_author)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить автора в БД")
 

@@ -24,6 +24,10 @@ class Author(BaseModel):
         orm_mode = True
 
 
+class GenreBase(BaseModel):
+    name: str | None
+
+
 class Genre(BaseModel):
     guid: UUID
     name: str | None
