@@ -69,17 +69,19 @@ async def add_book_to_db(db: DB, book: BookIn):
     except Exception as e:
         await log.aerror("%s @ %s", repr(e), book)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить книгу в БД")
-    return created_book
+    return await crud_book.get(db, created_book.guid)
 
 
-@router.post("/delete", summary="Удалить книгу", status_code=status.HTTP_200_OK)
-async def delete_book(db: DB, guid: UUID):
-    if not (db_book := await crud_book.get(db=db, guid=guid)):
+@router.delete("/{id}", summary="Удаление книги", status_code=status.HTTP_200_OK)
+async def delete_book(db: DB, id: UUID):
+    if not (db_book := await crud_book.get(db=db, guid=id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
     try:
         await crud_book_genre.delete_by_book(db, db_book.guid)
         await crud_book_author.delete_by_book(db, db_book.guid)
         await crud_book.delete(db=db, obj=db_book)
+
+        await db.commit()
     except Exception as e:
         await log.aerror("%s", repr(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось удалить книгу")

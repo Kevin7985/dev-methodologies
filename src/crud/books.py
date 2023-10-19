@@ -72,14 +72,16 @@ class DBBook(CRUD):
         if with_commit:
             await db.commit()
 
-        return await self.get(book.guid)
+        return await self.get(db, book.guid)
 
     async def update(self, *args):
         pass
 
-    async def delete(self, db: AsyncSession, obj: Book):
+    async def delete(self, db: AsyncSession, obj: Book, with_commit=False):
         await db.delete(obj)
-        await db.commit()
+
+        if with_commit:
+            await db.commit()
 
     def get_filtered(self, book_filter: BookListFilter, author_name: str | None):
         query_filter = True
@@ -183,14 +185,16 @@ class DBBookAuthor(CRUD):
     async def update(self, *args):
         pass
 
-    async def delete(self, db: AsyncSession, obj: Book_Author):
+    async def delete(self, db: AsyncSession, obj: Book_Author, with_commit=False):
         await db.delete(obj)
-        await db.commit()
 
-    async def delete_by_book(self, db: AsyncSession, book_guid: UUID):
+        if with_commit:
+            await db.commit()
+
+    async def delete_by_book(self, db: AsyncSession, book_guid: UUID, with_commit=False):
         objects = await self.get_by_book(db, book_guid)
         for obj in objects:
-            await self.delete(db, obj)
+            await self.delete(db, obj, with_commit)
 
 
 class DBBookGenre(CRUD):
@@ -208,11 +212,13 @@ class DBBookGenre(CRUD):
     async def update(self, *args):
         pass
 
-    async def delete(self, db: AsyncSession, obj: Book_Genre):
+    async def delete(self, db: AsyncSession, obj: Book_Genre, with_commit=False):
         await db.delete(obj)
-        await db.commit()
 
-    async def delete_by_book(self, db: AsyncSession, book_guid: UUID):
+        if with_commit:
+            await db.commit()
+
+    async def delete_by_book(self, db: AsyncSession, book_guid: UUID, with_commit=False):
         objects = await self.get_by_book(db, book_guid)
         for obj in objects:
-            await self.delete(db, obj)
+            await self.delete(db, obj, with_commit)
