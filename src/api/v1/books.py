@@ -43,6 +43,14 @@ async def add_authors_book_rows(db: DB, book_guid: UUID, authors: list[UUID]):
         await crud_objects.create(db=db, created_obj=Book_Author(book_id=book_guid, author_id=author))
 
 
+@router.get("/{id}", summary="Получение книги по GUID", response_model=BookOut)
+async def get_book_by_id(db: DB, id: UUID):
+    try:
+        return await crud_book.get(db, id)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось получить книгу из БД")
+
+
 @router.post("/create", summary="Создание новой книги", status_code=status.HTTP_201_CREATED)
 async def add_book_to_db(db: DB, book: BookIn):
     await get_authors_or_fail(db, book.authors)

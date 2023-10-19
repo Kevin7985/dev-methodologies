@@ -53,8 +53,13 @@ def build_authors(query):
 
 class DBBook(CRUD):
     async def get(self, db: AsyncSession, guid: UUID) -> Book | None:
-        result = await db.execute(select(Book).filter(Book.guid == guid))
-        return result.scalars().one_or_none()
+        authors = (await db.execute(select(Author).join(Book_Author, Book_Author.book_id == guid).filter(Author.guid == Book_Author.author_id))).scalars().all()
+        genres = (await db.execute(select(Genre).join(Book_Genre, Book_Genre.book_id == guid).filter(Genre.guid == Book_Genre.genre_id))).scalars().all()
+        book = (await db.execute(select(Book).filter(Book.guid == guid))).scalars().one_or_none()
+
+        book.authors = authors
+        book.genres = genres
+        return book
 
     async def get_all(self, db: AsyncSession) -> list[Book]:
         result = await db.execute(select(Book))
