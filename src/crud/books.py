@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import String, and_, cast, func, select
+from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import concat
 
@@ -57,6 +58,9 @@ class DBBook(CRUD):
         genres = (await db.execute(select(Genre).join(Book_Genre, Book_Genre.book_id == guid).filter(Genre.guid == Book_Genre.genre_id))).scalars().all()
         book = (await db.execute(select(Book).filter(Book.guid == guid))).scalars().one_or_none()
 
+        if not book:
+            return book
+
         book.authors = authors
         book.genres = genres
         return book
@@ -74,8 +78,21 @@ class DBBook(CRUD):
 
         return await self.get(db, book.guid)
 
-    async def update(self, *args):
-        pass
+    async def update(self, db: AsyncSession, obj: Book, with_commit=False):
+        update_query = (
+            sql_update(Book.__table__)
+            .where(Book.guid == obj.guid)
+            .values(**(obj.dict()))
+        )
+
+        await db.execute(update_query)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+        return await self.get(db, obj.guid)
+
 
     async def delete(self, db: AsyncSession, obj: Book, with_commit=False):
         await db.delete(obj)

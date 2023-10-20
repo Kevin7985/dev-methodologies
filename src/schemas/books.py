@@ -36,6 +36,15 @@ class Genre(BaseModel):
         orm_mode = True
 
 
+class Book(BaseModel):
+    guid: UUID
+    title: str
+    pic_file_name: str | None
+    description: str | None
+    isbn: str | None
+    rating: float | None
+
+
 class BookBase(BaseModel):
     title: str
     pic_file_name: str | None
@@ -58,13 +67,9 @@ class BookIn(BookBase):
     genres: list[UUID]
 
 
-class Book(BaseModel):
-    guid: UUID
-    title: str
-    pic_file_name: str | None
-    description: str | None
-    isbn: str | None
-    rating: float | None
+class BookUpdate(Book):
+    authors: list[UUID]
+    genres: list[UUID]
 
 
 class GenreFilter(Filter):

@@ -12,7 +12,7 @@ from src.crud.base import CRUDObject
 from src.crud.books import DBAuthor, DBBook, DBBookAuthor, DBBookGenre
 from src.model.books import Book as m_Book
 from src.model.books import Book_Author, Book_Genre
-from src.schemas.books import Author, BookIn, BookListFilter, BookOut
+from src.schemas.books import Author, BookIn, BookListFilter, BookOut, BookUpdate, Book
 from src.utils.exceptions import get_authors_or_fail, get_genres_or_fail
 
 router = APIRouter(prefix="/books", tags=["books"], responses={404: {"description": "Not found"}})
@@ -45,6 +45,9 @@ async def add_authors_book_rows(db: DB, book_guid: UUID, authors: list[UUID]):
 
 @router.get("/{id}", summary="Получение книги по GUID", response_model=BookOut)
 async def get_book_by_id(db: DB, id: UUID):
+    if not (db_book := await crud_book.get(db=db, guid=id)):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
+
     try:
         return await crud_book.get(db, id)
     except Exception as e:
@@ -70,6 +73,36 @@ async def add_book_to_db(db: DB, book: BookIn):
         await log.aerror("%s @ %s", repr(e), book)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить книгу в БД")
     return await crud_book.get(db, created_book.guid)
+
+
+@router.put("/update", summary="Обновление книги")
+async def update_book(db: DB, book: BookUpdate):
+    if not (db_book := await crud_book.get(db=db, guid=book.guid)):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
+
+    await get_authors_or_fail(db, book.authors)
+    await get_genres_or_fail(db, book.genres)
+
+    try:
+        book_dict = book.dict()
+        del book_dict["authors"]
+        del book_dict["genres"]
+
+        book_model = Book(**(book_dict))
+        updated_book = await crud_book.update(db, book_model)
+        
+        await crud_book_genre.delete_by_book(db, book.guid)
+        await crud_book_author.delete_by_book(db, book.guid)
+
+        await add_genre_book_rows(db=db, book_guid=book.guid, genres=book.genres)
+        await add_authors_book_rows(db=db, book_guid=book.guid, authors=book.authors)
+
+        await db.commit()
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить книгу в БД")
+
+    return updated_book
 
 
 @router.delete("/{id}", summary="Удаление книги", status_code=status.HTTP_200_OK)
