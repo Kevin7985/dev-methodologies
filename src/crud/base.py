@@ -32,10 +32,13 @@ class CRUD:
 
 
 class CRUDObject(CRUD):
-    async def create(self, db: AsyncSession, created_obj):
+    async def create(self, db: AsyncSession, created_obj, with_commit=False):
         db.add(created_obj)
         await db.flush()
-        await db.commit()
+
+        if with_commit:
+            await db.commit()
+            
         return created_obj
 
     async def get(self, db: AsyncSession, obj):
