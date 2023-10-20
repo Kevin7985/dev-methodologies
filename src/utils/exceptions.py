@@ -20,7 +20,7 @@ async def get_authors_or_fail(db: AsyncSession, authors: list[UUID]):
 
 
 async def get_genres_or_fail(db: AsyncSession, genres: list[UUID]):
-    genres_in_db = await crud_authors.get_many(db, genres)
+    genres_in_db = await crud_genres.get_many(db, genres)
     if len(genres_in_db) != len(genres):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=GENRES_NOT_FOUND)
     return genres_in_db

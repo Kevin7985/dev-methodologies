@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import String, and_, cast, func, select
+from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import concat
 
@@ -12,7 +13,14 @@ from src.schemas.books import BookListFilter
 def build_genres(query):
     query_alias = query.alias(name="main_query")
     initial_requirements_query = (  # noqa: ECE001
-        select(query_alias.c.guid, func.json_agg(Genre.name).label("genres"))
+        select(query_alias.c.guid, func.json_agg(
+            func.json_build_object(
+                'guid',
+                Genre.guid,
+                'name',
+                Genre.name
+            )
+        ).label("genres"))
         .select_from(query_alias)
         .join(Book_Genre, Book_Genre.book_id == query_alias.c.guid)
         .join(Genre, Genre.guid == Book_Genre.genre_id)
@@ -24,10 +32,18 @@ def build_genres(query):
 def build_authors(query):
     query_alias = query.alias(name="main_query")
     initial_requirements_query = (  # noqa: ECE001
-        select(
-            query_alias.c.guid,
-            func.json_agg(concat(Author.surname, " ", Author.name, " ", Author.patronymic)).label("authors"),
-        )
+        select(query_alias.c.guid, func.json_agg(
+            func.json_build_object(
+                'guid',
+                Author.guid,
+                'name',
+                Author.name,
+                'surname',
+                Author.surname,
+                'patronymic',
+                Author.patronymic
+            )
+        ).label("authors"))
         .select_from(query_alias)
         .join(Book_Author, Book_Author.book_id == query_alias.c.guid)
         .join(Author, Book_Author.author_id == Author.guid)
@@ -38,25 +54,51 @@ def build_authors(query):
 
 class DBBook(CRUD):
     async def get(self, db: AsyncSession, guid: UUID) -> Book | None:
-        result = await db.execute(select(Book).filter(Book.guid == guid))
-        return result.scalars().one_or_none()
+        authors = (await db.execute(select(Author).join(Book_Author, Book_Author.book_id == guid).filter(Author.guid == Book_Author.author_id))).scalars().all()
+        genres = (await db.execute(select(Genre).join(Book_Genre, Book_Genre.book_id == guid).filter(Genre.guid == Book_Genre.genre_id))).scalars().all()
+        book = (await db.execute(select(Book).filter(Book.guid == guid))).scalars().one_or_none()
+
+        if not book:
+            return book
+
+        book.authors = authors
+        book.genres = genres
+        return book
 
     async def get_all(self, db: AsyncSession) -> list[Book]:
         result = await db.execute(select(Book))
         return result.scalars().all()
 
-    async def create(self, db: AsyncSession, book: Book) -> Book:
+    async def create(self, db: AsyncSession, book: Book, with_commit=False) -> Book:
         db.add(book)
         await db.flush()
-        await db.commit()
-        return book
 
-    async def update(self, *args):
-        pass
+        if with_commit:
+            await db.commit()
 
-    async def delete(self, db: AsyncSession, obj: Book):
+        return await self.get(db, book.guid)
+
+    async def update(self, db: AsyncSession, obj: Book, with_commit=False):
+        update_query = (
+            sql_update(Book.__table__)
+            .where(Book.guid == obj.guid)
+            .values(**(obj.dict()))
+        )
+
+        await db.execute(update_query)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+        return await self.get(db, obj.guid)
+
+
+    async def delete(self, db: AsyncSession, obj: Book, with_commit=False):
         await db.delete(obj)
-        await db.commit()
+
+        if with_commit:
+            await db.commit()
 
     def get_filtered(self, book_filter: BookListFilter, author_name: str | None):
         query_filter = True
@@ -99,13 +141,18 @@ class DBAuthor(CRUD):
         result = await db.execute(select(Author).filter(Author.guid == guid))
         return result.scalars().one_or_none()
 
-    async def get_all(self, db: AsyncSession) -> list[Author]:
-        result = await db.execute(select(Author).order_by(Author.surname))
-        return result.scalars().all()
+    def get_all(self, db: AsyncSession) -> list[Author]:
+        return (select(Author).order_by(Author.surname))
 
     async def get_many(self, db: AsyncSession, guids: list[UUID]) -> list[Author]:
         result = await db.execute(select(Author).filter(Author.guid.in_(guids)))
         return result.scalars().all()
+
+    async def create(self, db: AsyncSession, author: Author) -> Author:
+        db.add(author)
+        await db.flush()
+        await db.commit()
+        return author
 
     async def update(self, *args):
         pass
@@ -126,6 +173,12 @@ class DBGenre(CRUD):
     async def get_many(self, db: AsyncSession, guids: list[UUID]) -> list[Genre]:
         result = await db.execute(select(Genre).filter(Genre.guid.in_(guids)))
         return result.scalars().all()
+
+    async def create(self, db: AsyncSession, genre: Genre) -> Genre:
+        db.add(genre)
+        await db.flush()
+        await db.commit()
+        return genre
 
     async def update(self, *args):
         pass
@@ -149,14 +202,16 @@ class DBBookAuthor(CRUD):
     async def update(self, *args):
         pass
 
-    async def delete(self, db: AsyncSession, obj: Book_Author):
+    async def delete(self, db: AsyncSession, obj: Book_Author, with_commit=False):
         await db.delete(obj)
-        await db.commit()
 
-    async def delete_by_book(self, db: AsyncSession, book_guid: UUID):
+        if with_commit:
+            await db.commit()
+
+    async def delete_by_book(self, db: AsyncSession, book_guid: UUID, with_commit=False):
         objects = await self.get_by_book(db, book_guid)
         for obj in objects:
-            await self.delete(db, obj)
+            await self.delete(db, obj, with_commit)
 
 
 class DBBookGenre(CRUD):
@@ -174,11 +229,13 @@ class DBBookGenre(CRUD):
     async def update(self, *args):
         pass
 
-    async def delete(self, db: AsyncSession, obj: Book_Genre):
+    async def delete(self, db: AsyncSession, obj: Book_Genre, with_commit=False):
         await db.delete(obj)
-        await db.commit()
 
-    async def delete_by_book(self, db: AsyncSession, book_guid: UUID):
+        if with_commit:
+            await db.commit()
+
+    async def delete_by_book(self, db: AsyncSession, book_guid: UUID, with_commit=False):
         objects = await self.get_by_book(db, book_guid)
         for obj in objects:
-            await self.delete(db, obj)
+            await self.delete(db, obj, with_commit)
