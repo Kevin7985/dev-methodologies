@@ -8,14 +8,37 @@ from src.crud.users import DBUser
 from src.model.users import User as m_User
 from src.schemas.users import UserIn, UserOut, UserLogin, UserLogToken
 
+from src.database import Redis
+from src.utils.funcs import generateToken
+
 router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
 
 crud_user = DBUser()
 
 
 @router.post("/auth", summary="Вход в профиль пользователя", response_model=UserLogToken)
-async def auth_user(db: DB, user: UserLogin) :
-    return "dsaffh"
+async def auth_user(db: DB, user: UserLogin):
+    check_email = await crud_user.findByParam(db, "email", user.login)
+    check_login = await crud_user.findByParam(db, "login", user.login)
+
+    if (not check_email) and (not check_login):
+        raise HTTPException(404, detail="Неверный логин или пароль")
+
+    dbUser = None
+    if check_email:
+        dbUser = check_email
+    else:
+        dbUser = check_login
+
+    if user.password != dbUser.password:
+        raise HTTPException(404, detail="Неверный логин или пароль")
+
+    auth_token = generateToken()
+
+    Redis.set(auth_token, str(dbUser.guid))
+    Redis.expire(auth_token, 24 * 3600)
+
+    return UserLogToken(access_token=auth_token)
 #
 #
 # @router.get("/all", summary="Список всех пользователей")
