@@ -11,6 +11,8 @@ from src.schemas.users import UserIn, UserOut, UserLogin, UserLogToken
 from src.database import Redis
 from src.utils.funcs import generateToken
 
+from src.utils.exceptions import checkAuth
+
 router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
 
 crud_user = DBUser()

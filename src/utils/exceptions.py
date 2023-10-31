@@ -7,6 +7,8 @@ from src.crud.base import CRUDObject
 from src.crud.books import DBAuthor, DBGenre
 from src.utils.const import AUTHORS_NOT_FOUND, GENRES_NOT_FOUND
 
+from src.database import Redis
+
 crud_objects = CRUDObject()
 crud_authors = DBAuthor()
 crud_genres = DBGenre()
@@ -24,3 +26,10 @@ async def get_genres_or_fail(db: AsyncSession, genres: list[UUID]):
     if len(genres_in_db) != len(genres):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=GENRES_NOT_FOUND)
     return genres_in_db
+
+
+def checkAuth(access_token: str):
+    print(access_token)
+    user_id = Redis.get(access_token)
+    if not user_id:
+        raise HTTPException(403, detail="Not authenticated")
