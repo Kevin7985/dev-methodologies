@@ -18,12 +18,12 @@ class User(Base):
     phone = Column(String, comment="Телефон пользователя")
     avatar = Column(String, comment="Аватар пользователя")
 
-    @validates("email")
-    def email_validation(self, key, email):
-        # TODO: написать код
-        pass
-
-    @validates("password")
-    def password_validation(self, key, password):
-        # TODO: написать код
-        pass
+    # @validates("email")
+    # def email_validation(self, key, email):
+    #     # TODO: написать код
+    #     pass
+    #
+    # @validates("password")
+    # def password_validation(self, key, password):
+    #     # TODO: написать код
+    #     pass
