@@ -17,7 +17,6 @@ async_session = async_sessionmaker(engine, expire_on_commit=False)
 Base = declarative_base()
 
 Redis = redis.from_url(url=redis_url, password=redis_password)
-print(Redis.ping())
 
 async def get_session() -> AsyncGenerator[AsyncSession]:
     async with async_session() as session:

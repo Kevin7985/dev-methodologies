@@ -6,7 +6,7 @@ from fastapi_filter import FilterDepends
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 
-from src.api.dependency import DB
+from src.api.dependency import DB, Credentials
 from src.config import log
 from src.crud.base import CRUDObject
 from src.crud.books import DBAuthor, DBBook, DBBookAuthor, DBBookGenre
@@ -29,7 +29,7 @@ _CollectionOfOfferFilter = Annotated[BookListFilter, FilterDepends(BookListFilte
 
 
 @router.get("/all", summary="Список всех книг", response_model=Page[BookOut])
-async def get_all(db: DB, book_filter: _CollectionOfOfferFilter, author_name: str | None = DEFAULT_AUTHOR_STRING):
+async def get_all(credentials: Credentials, db: DB, book_filter: _CollectionOfOfferFilter, author_name: str | None = DEFAULT_AUTHOR_STRING):
     return await paginate(db, crud_book.get_filtered(book_filter=book_filter, author_name=author_name), unique=False)
 
 
@@ -44,7 +44,7 @@ async def add_authors_book_rows(db: DB, book_guid: UUID, authors: list[UUID]):
 
 
 @router.get("/{id}", summary="Получение книги по GUID", response_model=BookOut)
-async def get_book_by_id(db: DB, id: UUID):
+async def get_book_by_id(credentials: Credentials, db: DB, id: UUID):
     if not (db_book := await crud_book.get(db=db, guid=id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
 
@@ -55,7 +55,7 @@ async def get_book_by_id(db: DB, id: UUID):
 
 
 @router.post("/create", summary="Создание новой книги", status_code=status.HTTP_201_CREATED)
-async def add_book_to_db(db: DB, book: BookIn):
+async def add_book_to_db(credentials: Credentials, db: DB, book: BookIn):
     await get_authors_or_fail(db, book.authors)
     await get_genres_or_fail(db, book.genres)
     try:
@@ -76,7 +76,7 @@ async def add_book_to_db(db: DB, book: BookIn):
 
 
 @router.put("/update", summary="Обновление книги")
-async def update_book(db: DB, book: BookUpdate):
+async def update_book(credentials: Credentials, db: DB, book: BookUpdate):
     if not (db_book := await crud_book.get(db=db, guid=book.guid)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
 
@@ -90,7 +90,7 @@ async def update_book(db: DB, book: BookUpdate):
 
         book_model = Book(**(book_dict))
         updated_book = await crud_book.update(db, book_model)
-        
+
         await crud_book_genre.delete_by_book(db, book.guid)
         await crud_book_author.delete_by_book(db, book.guid)
 
@@ -106,7 +106,7 @@ async def update_book(db: DB, book: BookUpdate):
 
 
 @router.delete("/{id}", summary="Удаление книги", status_code=status.HTTP_200_OK)
-async def delete_book(db: DB, id: UUID):
+async def delete_book(credentials: Credentials, db: DB, id: UUID):
     if not (db_book := await crud_book.get(db=db, guid=id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
     try:
