@@ -41,11 +41,6 @@ async def auth_user(db: DB, user: UserLogin):
     Redis.expire(auth_token, 24 * 3600)
 
     return UserLogToken(access_token=auth_token)
-#
-#
-# @router.get("/all", summary="Список всех пользователей")
-# async def get_all(db: DB, credentials: Credentials):
-#     return "hello"
 
 
 @router.post("/register", summary="Регистрация нового пользователя", status_code=status.HTTP_201_CREATED)
@@ -70,9 +65,15 @@ async def register_user(db: DB, user: UserIn) -> UserOut:
     return createdUser
 
 
-# @router.get("/{id}", summary="Получение пользователя по id", response_model=User)
-# async def get_user(db: DB, id: UUID, credentials: Credentials):
-#     return "ds"
+@router.get("/{id}", summary="Получение пользователя по id", response_model=UserOut)
+async def get_user(db: DB, id: UUID, credentials: Credentials):
+    checkAuth(credentials.credentials)
+
+    user = await crud_user.get(db, id)
+    if not user:
+        raise HTTPException(404, detail="Пользователь с данным guid не найден")
+
+    return  UserOut(**(user.__dict__))
 #
 #
 # @router.put("/update", summary="Редактирование профиля пользователя")
