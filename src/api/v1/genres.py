@@ -14,13 +14,13 @@ crud_genres = DBGenre()
 
 @router.get("/all", summary="Список всех жанров", response_model=list[Genre])
 async def get_all(credentials: Credentials, db: DB):
-    checkAuth(credentials.credentials)
+    await checkAuth(db, credentials.credentials)
     return await crud_genres.get_all(db)
 
 
 @router.post("/create", summary="Создание нового жанра")
 async def create_genre(credentials: Credentials, db: DB, genre: GenreBase):
-    checkAuth(credentials.credentials)
+    await checkAuth(db, credentials.credentials)
 
     try:
         genre_model = m_genre(**(genre.dict()))

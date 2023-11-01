@@ -67,7 +67,7 @@ async def register_user(db: DB, user: UserIn) -> UserOut:
 
 @router.get("/{id}", summary="Получение пользователя по id", response_model=UserOut)
 async def get_user(db: DB, id: UUID, credentials: Credentials):
-    checkAuth(credentials.credentials)
+    await checkAuth(db, credentials.credentials)
 
     user = await crud_user.get(db, id)
     if not user:
@@ -81,6 +81,12 @@ async def get_user(db: DB, id: UUID, credentials: Credentials):
 #     return "dfs"
 #
 #
-# @router.delete("/{id}", summary="Удаление пользователя по id")
-# async def delete_user(db: DB, id: UUID, credentials: Credentials):
-#     return "sdfgf"
+@router.delete("/{id}", summary="Удаление пользователя по id", status_code=status.HTTP_200_OK)
+async def delete_user(db: DB, id: UUID, credentials: Credentials):
+    await checkAuth(db, credentials.credentials)
+
+    user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
+    if id != user_id:
+        raise HTTPException(403, detail="Данное действие недоступно с данным токеном")
+
+    await crud_user.delete(db, id)

@@ -17,14 +17,14 @@ crud_authors = DBAuthor()
 
 @router.get("/all", summary="Список всех авторов", response_model=Page[Author])
 async def get_all(credentials: Credentials, db: DB):
-    checkAuth(credentials.credentials)
+    await checkAuth(db, credentials.credentials)
     return await paginate(db, crud_authors.get_all(db), unique=False)
 
 
 @router.post("/create", summary="Создание нового автора")
 async def create_author(credentials: Credentials, db: DB, author: AuthorBase):
-    checkAuth(credentials.credentials)
-    
+    await checkAuth(db, credentials.credentials)
+
     try:
         author_model = m_author(**(author.dict()))
         created_author = await crud_authors.create(db, author_model)
