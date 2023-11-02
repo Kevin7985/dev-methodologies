@@ -12,7 +12,7 @@ from src.crud.base import CRUDObject
 from src.crud.books import DBAuthor, DBBook, DBBookAuthor, DBBookGenre
 from src.model.books import Book as m_Book
 from src.model.books import Book_Author, Book_Genre
-from src.schemas.books import Author, BookIn, BookListFilter, BookOut, BookUpdate, Book
+from src.schemas.books import Book, BookIn, BookListFilter, BookOut, BookUpdate
 from src.utils.exceptions import get_authors_or_fail, get_genres_or_fail
 
 router = APIRouter(prefix="/books", tags=["books"], responses={404: {"description": "Not found"}})
@@ -90,7 +90,7 @@ async def update_book(db: DB, book: BookUpdate):
 
         book_model = Book(**(book_dict))
         updated_book = await crud_book.update(db, book_model)
-        
+
         await crud_book_genre.delete_by_book(db, book.guid)
         await crud_book_author.delete_by_book(db, book.guid)
 

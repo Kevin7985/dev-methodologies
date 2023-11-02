@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUDObject
 from src.crud.books import DBAuthor, DBGenre
-from src.utils.const import AUTHORS_NOT_FOUND, GENRES_NOT_FOUND
+from src.model.bookcrossing_points import BookcrossingPoint
+from src.utils.const import AUTHORS_NOT_FOUND, GENRES_NOT_FOUND, INVALID_COORDINATES, MAX_LATITUDE, MAX_LONGITUDE
 
 crud_objects = CRUDObject()
 crud_authors = DBAuthor()
@@ -24,3 +25,8 @@ async def get_genres_or_fail(db: AsyncSession, genres: list[UUID]):
     if len(genres_in_db) != len(genres):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=GENRES_NOT_FOUND)
     return genres_in_db
+
+
+def validate_coordinates_or_fail(point: BookcrossingPoint) -> None:
+    if not (abs(point.latitude) <= MAX_LATITUDE and abs(point.longitude) <= MAX_LONGITUDE):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=INVALID_COORDINATES)

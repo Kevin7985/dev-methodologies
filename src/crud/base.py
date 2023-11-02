@@ -38,7 +38,7 @@ class CRUDObject(CRUD):
 
         if with_commit:
             await db.commit()
-            
+
         return created_obj
 
     async def get(self, db: AsyncSession, obj):

@@ -13,14 +13,10 @@ from src.schemas.books import BookListFilter
 def build_genres(query):
     query_alias = query.alias(name="main_query")
     initial_requirements_query = (  # noqa: ECE001
-        select(query_alias.c.guid, func.json_agg(
-            func.json_build_object(
-                'guid',
-                Genre.guid,
-                'name',
-                Genre.name
-            )
-        ).label("genres"))
+        select(
+            query_alias.c.guid,
+            func.json_agg(func.json_build_object("guid", Genre.guid, "name", Genre.name)).label("genres"),
+        )
         .select_from(query_alias)
         .join(Book_Genre, Book_Genre.book_id == query_alias.c.guid)
         .join(Genre, Genre.guid == Book_Genre.genre_id)
@@ -32,18 +28,14 @@ def build_genres(query):
 def build_authors(query):
     query_alias = query.alias(name="main_query")
     initial_requirements_query = (  # noqa: ECE001
-        select(query_alias.c.guid, func.json_agg(
-            func.json_build_object(
-                'guid',
-                Author.guid,
-                'name',
-                Author.name,
-                'surname',
-                Author.surname,
-                'patronymic',
-                Author.patronymic
-            )
-        ).label("authors"))
+        select(
+            query_alias.c.guid,
+            func.json_agg(
+                func.json_build_object(
+                    "guid", Author.guid, "name", Author.name, "surname", Author.surname, "patronymic", Author.patronymic
+                )
+            ).label("authors"),
+        )
         .select_from(query_alias)
         .join(Book_Author, Book_Author.book_id == query_alias.c.guid)
         .join(Author, Book_Author.author_id == Author.guid)
@@ -54,8 +46,26 @@ def build_authors(query):
 
 class DBBook(CRUD):
     async def get(self, db: AsyncSession, guid: UUID) -> Book | None:
-        authors = (await db.execute(select(Author).join(Book_Author, Book_Author.book_id == guid).filter(Author.guid == Book_Author.author_id))).scalars().all()
-        genres = (await db.execute(select(Genre).join(Book_Genre, Book_Genre.book_id == guid).filter(Genre.guid == Book_Genre.genre_id))).scalars().all()
+        authors = (
+            (
+                await db.execute(
+                    select(Author)
+                    .join(Book_Author, Book_Author.book_id == guid)
+                    .filter(Author.guid == Book_Author.author_id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        genres = (
+            (
+                await db.execute(
+                    select(Genre).join(Book_Genre, Book_Genre.book_id == guid).filter(Genre.guid == Book_Genre.genre_id)
+                )
+            )
+            .scalars()
+            .all()
+        )
         book = (await db.execute(select(Book).filter(Book.guid == guid))).scalars().one_or_none()
 
         if not book:
@@ -79,11 +89,7 @@ class DBBook(CRUD):
         return await self.get(db, book.guid)
 
     async def update(self, db: AsyncSession, obj: Book, with_commit=False):
-        update_query = (
-            sql_update(Book.__table__)
-            .where(Book.guid == obj.guid)
-            .values(**(obj.dict()))
-        )
+        update_query = sql_update(Book.__table__).where(Book.guid == obj.guid).values(**(obj.dict()))
 
         await db.execute(update_query)
         await db.flush()
@@ -92,7 +98,6 @@ class DBBook(CRUD):
             await db.commit()
 
         return await self.get(db, obj.guid)
-
 
     async def delete(self, db: AsyncSession, obj: Book, with_commit=False):
         await db.delete(obj)
@@ -142,7 +147,7 @@ class DBAuthor(CRUD):
         return result.scalars().one_or_none()
 
     def get_all(self, db: AsyncSession) -> list[Author]:
-        return (select(Author).order_by(Author.surname))
+        return select(Author).order_by(Author.surname)
 
     async def get_many(self, db: AsyncSession, guids: list[UUID]) -> list[Author]:
         result = await db.execute(select(Author).filter(Author.guid.in_(guids)))
