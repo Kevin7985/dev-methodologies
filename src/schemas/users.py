@@ -48,7 +48,7 @@ class UserLogin(BaseModel):
     password: str |None
 
 
-class UserLogToken(BaseModel):
+class UserLog(UserOut):
     access_token: str | None
 
 

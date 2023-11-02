@@ -6,7 +6,7 @@ from src.api.dependency import DB, Credentials
 from src.config import log
 from src.crud.users import DBUser
 from src.model.users import User as m_User
-from src.schemas.users import User, UserIn, UserOut, UserLogin, UserLogToken, UserUpdate, UserPasswordUpdate
+from src.schemas.users import User, UserIn, UserOut, UserLogin, UserLog, UserUpdate, UserPasswordUpdate
 
 from src.database import Redis
 from src.utils.funcs import generateToken
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/users", tags=["users"], responses={404: {"descriptio
 crud_user = DBUser()
 
 
-@router.post("/auth", summary="Вход в профиль пользователя", response_model=UserLogToken)
+@router.post("/auth", summary="Вход в профиль пользователя", response_model=UserLog)
 async def auth_user(db: DB, user: UserLogin):
     check_email = await crud_user.findByParam(db, "email", user.login)
     check_login = await crud_user.findByParam(db, "login", user.login)
@@ -40,7 +40,10 @@ async def auth_user(db: DB, user: UserLogin):
     Redis.set(auth_token, str(dbUser.guid))
     Redis.expire(auth_token, 24 * 3600)
 
-    return UserLogToken(access_token=auth_token)
+    user_dict = dbUser.__dict__
+    user_dict["access_token"] = auth_token
+
+    return UserLog(**(user_dict))
 
 
 @router.post("/register", summary="Регистрация нового пользователя", status_code=status.HTTP_201_CREATED)
