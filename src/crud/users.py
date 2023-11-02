@@ -41,7 +41,6 @@ class DBUser(CRUD):
 
     async def delete(self, db: AsyncSession, guid: UUID):
         user = await self.get(db, guid)
-        print(user)
         await db.delete(user)
         await db.flush()
         await db.commit()

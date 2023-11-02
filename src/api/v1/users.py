@@ -24,11 +24,7 @@ async def auth_user(db: DB, user: UserLogin):
     if (not check_email) and (not check_login):
         raise HTTPException(404, detail="Неверный логин или пароль")
 
-    dbUser = None
-    if check_email:
-        dbUser = check_email
-    else:
-        dbUser = check_login
+    dbUser = check_email if check_email else check_login
 
     if user.password != dbUser.password:
         raise HTTPException(404, detail="Неверный логин или пароль")
@@ -78,7 +74,7 @@ async def get_user(db: DB, id: UUID, credentials: Credentials):
 
 
 @router.put("/update", summary="Редактирование профиля пользователя")
-async def upadate_user(credentials: Credentials, db: DB, user: UserUpdate):
+async def update_user(credentials: Credentials, db: DB, user: UserUpdate):
     await checkAuth(db, credentials.credentials)
 
     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
@@ -91,7 +87,7 @@ async def upadate_user(credentials: Credentials, db: DB, user: UserUpdate):
 
         await crud_user.update(db, user_model)
     except Exception as e:
-        print(e)
+        await log.aerror("%s @ %s", repr(e), user)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить пользователя в БД")
 
 
@@ -112,9 +108,9 @@ async def update_user_password(credentials: Credentials, db: DB, user: UserPassw
         user_dict["password"] = user_dict["newPassword"]
         user_model = User(**(user_dict))
 
-        await crud_user.update(db, user_model, True)
+        await crud_user.update(db, user_model, True)  # noqa: FBT003
     except Exception as e:
-        print(e)
+        await log.aerror("%s @ %s", repr(e), user)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить пароль пользователя в БД"
         )

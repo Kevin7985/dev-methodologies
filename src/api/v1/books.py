@@ -12,7 +12,7 @@ from src.crud.base import CRUDObject
 from src.crud.books import DBAuthor, DBBook, DBBookAuthor, DBBookGenre
 from src.model.books import Book as m_Book
 from src.model.books import Book_Author, Book_Genre
-from src.schemas.books import Book, BookIn, BookListFilter, BookOut, BookUpdate
+from src.schemas.books import BookIn, BookListFilter, BookOut, BookUpdate
 from src.utils.exceptions import checkAuth, get_authors_or_fail, get_genres_or_fail
 
 router = APIRouter(prefix="/books", tags=["books"], responses={404: {"description": "Not found"}})
@@ -57,8 +57,9 @@ async def get_book_by_id(credentials: Credentials, db: DB, id: UUID):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
 
     try:
-        return await crud_book.get(db, id)
+        return db_book
     except Exception as e:
+        await log.aerror("%s", repr(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось получить книгу из БД")
 
 
@@ -97,11 +98,8 @@ async def update_book(credentials: Credentials, db: DB, book: BookUpdate):
 
     try:
         book_dict = book.dict()
-        del book_dict["authors"]
-        del book_dict["genres"]
 
-        book_model = Book(**(book_dict))
-        updated_book = await crud_book.update(db, book_model)
+        updated_book = await crud_objects.update(db, exist_obj=db_book, new_obj=book_dict)
 
         await crud_book_genre.delete_by_book(db, book.guid)
         await crud_book_author.delete_by_book(db, book.guid)
@@ -111,7 +109,7 @@ async def update_book(credentials: Credentials, db: DB, book: BookUpdate):
 
         await db.commit()
     except Exception as e:
-        print(e)
+        await log.aerror("%s", repr(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить книгу в БД")
 
     return updated_book
