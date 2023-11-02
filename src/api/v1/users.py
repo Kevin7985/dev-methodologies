@@ -93,13 +93,27 @@ async def upadate_user(credentials: Credentials, db: DB, user: UserUpdate):
         print(e)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить пользователя в БД")
 
-# @router.put("/change-password", summary="Смена пароля пользователя")
-# async def update_user_password(credentials: Credentials, db: DB, user: UserPasswordUpdate):
-#     await checkAuth(db, credentials.credentials)
-#
-#     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
-#     if user.guid != user_id:
-#         raise HTTPException(403, detail="Данное действие недоступно с данным токеном")
+@router.put("/change-password", summary="Смена пароля пользователя")
+async def update_user_password(credentials: Credentials, db: DB, user: UserPasswordUpdate):
+    await checkAuth(db, credentials.credentials)
+
+    user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
+    if user.guid != user_id:
+        raise HTTPException(403, detail="Данное действие недоступно с данным токеном")
+
+    dbUser = await crud_user.get(db, user_id)
+    if dbUser.password != user.oldPassword:
+        raise HTTPException(403, "Неверный старый пароль")
+
+    try:
+        user_dict = user.dict()
+        user_dict["password"] = user_dict["newPassword"]
+        user_model = User(**(user_dict))
+
+        await crud_user.update(db, user_model, True)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить пароль пользователя в БД")
 
 
 @router.delete("/{id}", summary="Удаление пользователя по id", status_code=status.HTTP_200_OK)

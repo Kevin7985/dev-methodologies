@@ -25,9 +25,15 @@ class DBUser(CRUD):
         return user
 
 
-    async def update(self, db: AsyncSession, user: User) -> User:
+    async def update(self, db: AsyncSession, user: User, isPasswordUpdate=False) -> User:
         obj = user.dict()
-        del obj["password"]
+
+        if not isPasswordUpdate:
+            del obj["password"]
+        else:
+            obj = {
+                "password": obj["password"]
+            }
 
         update_query = (
             sql_update(User.__table__)
