@@ -4,8 +4,6 @@ from src.api.dependency import DB, Credentials
 from src.crud.books import DBGenre
 from src.model.books import Genre as m_genre
 from src.schemas.books import Genre, GenreBase
-from src.model.books import Genre as m_genre
-
 from src.utils.exceptions import checkAuth
 
 router = APIRouter(prefix="/genres", tags=["genres"])

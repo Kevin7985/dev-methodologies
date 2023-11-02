@@ -12,8 +12,8 @@ from src.crud.base import CRUDObject
 from src.crud.books import DBAuthor, DBBook, DBBookAuthor, DBBookGenre
 from src.model.books import Book as m_Book
 from src.model.books import Book_Author, Book_Genre
-from src.schemas.books import Author, BookIn, BookListFilter, BookOut, BookUpdate, Book
-from src.utils.exceptions import get_authors_or_fail, get_genres_or_fail, checkAuth
+from src.schemas.books import Book, BookIn, BookListFilter, BookOut, BookUpdate
+from src.utils.exceptions import checkAuth, get_authors_or_fail, get_genres_or_fail
 
 router = APIRouter(prefix="/books", tags=["books"], responses={404: {"description": "Not found"}})
 DEFAULT_LIST_GENRES = Query(default=None, description="List of genres")
@@ -29,7 +29,12 @@ _CollectionOfOfferFilter = Annotated[BookListFilter, FilterDepends(BookListFilte
 
 
 @router.get("/all", summary="Список всех книг", response_model=Page[BookOut])
-async def get_all(credentials: Credentials, db: DB, book_filter: _CollectionOfOfferFilter, author_name: str | None = DEFAULT_AUTHOR_STRING):
+async def get_all(
+    credentials: Credentials,
+    db: DB,
+    book_filter: _CollectionOfOfferFilter,
+    author_name: str | None = DEFAULT_AUTHOR_STRING,
+):
     await checkAuth(db, credentials.credentials)
     return await paginate(db, crud_book.get_filtered(book_filter=book_filter, author_name=author_name), unique=False)
 

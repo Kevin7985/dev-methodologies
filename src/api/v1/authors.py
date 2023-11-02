@@ -4,9 +4,9 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 
 from src.api.dependency import DB, Credentials
 from src.crud.books import DBAuthor
+from src.model.books import Author as m_Author
 from src.schemas.books import Author, AuthorBase
 from src.utils.exceptions import checkAuth
-from src.model.books import Author as m_Author
 
 router = APIRouter(prefix="/authors", tags=["authors"])
 DEFAULT_AUTHOR_STRING = Query(default=None, description="Author's name")

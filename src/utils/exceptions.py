@@ -6,10 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.crud.base import CRUDObject
 from src.crud.books import DBAuthor, DBGenre
 from src.crud.users import DBUser
+from src.database import Redis
 from src.model.bookcrossing_points import BookcrossingPoint
 from src.utils.const import AUTHORS_NOT_FOUND, GENRES_NOT_FOUND, INVALID_COORDINATES, MAX_LATITUDE, MAX_LONGITUDE
-
-from src.database import Redis
 
 crud_objects = CRUDObject()
 crud_authors = DBAuthor()

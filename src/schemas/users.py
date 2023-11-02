@@ -2,6 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+
 class UserBase(BaseModel):
     login: str | None
     name: str | None
@@ -45,7 +46,7 @@ class UserOut(BaseModel):
 
 class UserLogin(BaseModel):
     login: str | None
-    password: str |None
+    password: str | None
 
 
 class UserLog(UserOut):
