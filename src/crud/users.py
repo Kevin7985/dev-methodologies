@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
@@ -22,6 +23,23 @@ class DBUser(CRUD):
         await db.flush()
         await db.commit()
         return user
+
+
+    async def update(self, db: AsyncSession, user: User) -> User:
+        obj = user.dict()
+        del obj["password"]
+
+        update_query = (
+            sql_update(User.__table__)
+            .where(User.guid == user.guid)
+            .values(**(obj))
+        )
+
+        await db.execute(update_query)
+        await db.flush()
+        await db.commit()
+
+        return await self.get(db, user.guid)
 
 
     async def delete(self, db: AsyncSession, guid: UUID):

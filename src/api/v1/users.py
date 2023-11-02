@@ -6,7 +6,7 @@ from src.api.dependency import DB, Credentials
 from src.config import log
 from src.crud.users import DBUser
 from src.model.users import User as m_User
-from src.schemas.users import UserIn, UserOut, UserLogin, UserLogToken
+from src.schemas.users import User, UserIn, UserOut, UserLogin, UserLogToken, UserUpdate, UserPasswordUpdate
 
 from src.database import Redis
 from src.utils.funcs import generateToken
@@ -74,13 +74,34 @@ async def get_user(db: DB, id: UUID, credentials: Credentials):
         raise HTTPException(404, detail="Пользователь с данным guid не найден")
 
     return  UserOut(**(user.__dict__))
+
+
+@router.put("/update", summary="Редактирование профиля пользователя")
+async def upadate_user(credentials: Credentials, db: DB, user: UserUpdate):
+    await checkAuth(db, credentials.credentials)
+
+    user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
+    if user.guid != user_id:
+        raise HTTPException(403, detail="Данное действие недоступно с данным токеном")
+
+    try:
+        user_dict = user.dict()
+        user_model = User(**(user_dict))
+
+        await crud_user.update(db, user_model)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить пользователя в БД")
+
+# @router.put("/change-password", summary="Смена пароля пользователя")
+# async def update_user_password(credentials: Credentials, db: DB, user: UserPasswordUpdate):
+#     await checkAuth(db, credentials.credentials)
 #
-#
-# @router.put("/update", summary="Редактирование профиля пользователя")
-# async def upadate_user(db: DB, credentials: Credentials):
-#     return "dfs"
-#
-#
+#     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
+#     if user.guid != user_id:
+#         raise HTTPException(403, detail="Данное действие недоступно с данным токеном")
+
+
 @router.delete("/{id}", summary="Удаление пользователя по id", status_code=status.HTTP_200_OK)
 async def delete_user(db: DB, id: UUID, credentials: Credentials):
     await checkAuth(db, credentials.credentials)

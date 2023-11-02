@@ -13,6 +13,7 @@ class UserBase(BaseModel):
 
 class User(BaseModel):
     guid: UUID
+    login: str | None
     name: str | None
     about: str | None
     email: str | None
@@ -49,3 +50,18 @@ class UserLogin(BaseModel):
 
 class UserLogToken(BaseModel):
     access_token: str | None
+
+
+class UserUpdate(BaseModel):
+    guid: UUID
+    login: str | None
+    name: str | None
+    about: str | None
+    email: str | None
+    avatar: str | None
+
+
+class UserPasswordUpdate(BaseModel):
+    guid: UUID
+    oldPassword: str | None
+    newPassword: str | None
