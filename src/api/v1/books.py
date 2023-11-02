@@ -99,6 +99,9 @@ async def update_book(credentials: Credentials, db: DB, book: BookUpdate):
     try:
         book_dict = book.dict()
 
+        del book_dict["authors"]
+        del book_dict["genres"]
+
         updated_book = await crud_objects.update(db, exist_obj=db_book, new_obj=book_dict)
 
         await crud_book_genre.delete_by_book(db, book.guid)
