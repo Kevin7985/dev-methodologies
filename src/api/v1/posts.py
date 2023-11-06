@@ -29,7 +29,7 @@ async def get_all(credentials: Credentials, db: DB):
     await checkAuth(db, credentials.credentials)
 
 
-@router.post("/create", summary="Создание нового поста")
+@router.post("/create", summary="Создание нового поста", response_model=Post)
 async def add_post_to_db(credentials: Credentials, db: DB, post: PostBase):
     await checkAuth(db, credentials.credentials)
 
@@ -56,3 +56,12 @@ async def add_post_to_db(credentials: Credentials, db: DB, post: PostBase):
 @router.get("/{id}", summary="Получение поста по guid", response_model=Post)
 async def get_post_by_id(credentials: Credentials, db: DB, id: UUID):
     await checkAuth(db, credentials.credentials)
+
+    if not (db_post := await crud_post.get(db, id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
+
+    try:
+        return db_post
+    except Exception as e:
+        await log.aerror("%s", repr(e))
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Не удалось получить пост из БД")

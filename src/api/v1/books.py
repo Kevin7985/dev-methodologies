@@ -54,7 +54,7 @@ async def get_book_by_id(credentials: Credentials, db: DB, id: UUID):
     await checkAuth(db, credentials.credentials)
 
     if not (db_book := await crud_book.get(db=db, guid=id)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Такая книга не найдена")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Такая книга не найдена")
 
     try:
         return db_book
