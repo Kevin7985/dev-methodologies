@@ -1,5 +1,6 @@
 from random import randint
 
+
 def generateToken():
     alphabet = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890"
     token = "bookcrossing."

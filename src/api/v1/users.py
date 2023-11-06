@@ -1,17 +1,15 @@
 from uuid import UUID
 
-from fastapi import APIRouter, status, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 
 from src.api.dependency import DB, Credentials
 from src.config import log
 from src.crud.users import DBUser
-from src.model.users import User as m_User
-from src.schemas.users import User, UserIn, UserOut, UserLogin, UserLog, UserUpdate, UserPasswordUpdate
-
 from src.database import Redis
-from src.utils.funcs import generateToken
-
+from src.model.users import User as m_User
+from src.schemas.users import User, UserIn, UserLog, UserLogin, UserOut, UserPasswordUpdate, UserUpdate
 from src.utils.exceptions import checkAuth
+from src.utils.funcs import generateToken
 
 router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
 
@@ -26,11 +24,7 @@ async def auth_user(db: DB, user: UserLogin):
     if (not check_email) and (not check_login):
         raise HTTPException(404, detail="Неверный логин или пароль")
 
-    dbUser = None
-    if check_email:
-        dbUser = check_email
-    else:
-        dbUser = check_login
+    dbUser = check_email if check_email else check_login
 
     if user.password != dbUser.password:
         raise HTTPException(404, detail="Неверный логин или пароль")
@@ -76,11 +70,11 @@ async def get_user(db: DB, id: UUID, credentials: Credentials):
     if not user:
         raise HTTPException(404, detail="Пользователь с данным guid не найден")
 
-    return  UserOut(**(user.__dict__))
+    return UserOut(**(user.__dict__))
 
 
 @router.put("/update", summary="Редактирование профиля пользователя")
-async def upadate_user(credentials: Credentials, db: DB, user: UserUpdate):
+async def update_user(credentials: Credentials, db: DB, user: UserUpdate):
     await checkAuth(db, credentials.credentials)
 
     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
@@ -93,8 +87,9 @@ async def upadate_user(credentials: Credentials, db: DB, user: UserUpdate):
 
         await crud_user.update(db, user_model)
     except Exception as e:
-        print(e)
+        await log.aerror("%s @ %s", repr(e), user)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить пользователя в БД")
+
 
 @router.put("/change-password", summary="Смена пароля пользователя")
 async def update_user_password(credentials: Credentials, db: DB, user: UserPasswordUpdate):
@@ -113,10 +108,12 @@ async def update_user_password(credentials: Credentials, db: DB, user: UserPassw
         user_dict["password"] = user_dict["newPassword"]
         user_model = User(**(user_dict))
 
-        await crud_user.update(db, user_model, True)
+        await crud_user.update(db, user_model, True)  # noqa: FBT003
     except Exception as e:
-        print(e)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить пароль пользователя в БД")
+        await log.aerror("%s @ %s", repr(e), user)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить пароль пользователя в БД"
+        )
 
 
 @router.delete("/{id}", summary="Удаление пользователя по id", status_code=status.HTTP_200_OK)

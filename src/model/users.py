@@ -1,7 +1,6 @@
 import uuid
 
 from sqlalchemy import Column, String
-from sqlalchemy.orm import validates
 from sqlalchemy_utils import UUIDType
 
 from src.database import Base

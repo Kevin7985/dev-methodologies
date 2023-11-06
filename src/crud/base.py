@@ -38,7 +38,7 @@ class CRUDObject(CRUD):
 
         if with_commit:
             await db.commit()
-            
+
         return created_obj
 
     async def get(self, db: AsyncSession, obj):
@@ -58,10 +58,11 @@ class CRUDObject(CRUD):
             result = await db.execute(select(obj_class).filter(obj_class.guid.in_(guids)))
         return result.scalars().all()
 
-    async def update(self, db: AsyncSession, exist_obj, new_obj):
+    async def update(self, db: AsyncSession, exist_obj, new_obj, with_commit: bool = True):  # noqa: FBT001
         self.update_row(row=exist_obj, updates=new_obj)
         await db.flush()
-        await db.commit()
+        if with_commit:
+            await db.commit()
         return exist_obj
 
     async def delete(self, db: AsyncSession, obj) -> None:
