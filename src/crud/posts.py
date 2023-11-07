@@ -21,3 +21,10 @@ class DBPost(CRUD):
             await db.commit()
 
         return await self.get(db, post.guid)
+
+
+    async def delete(self, db: AsyncSession, obj: Book, with_commit=False):
+        await db.delete(obj)
+
+        if with_commit:
+            await db.commit()

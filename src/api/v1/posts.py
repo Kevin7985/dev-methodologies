@@ -65,3 +65,17 @@ async def get_post_by_id(credentials: Credentials, db: DB, id: UUID):
     except Exception as e:
         await log.aerror("%s", repr(e))
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Не удалось получить пост из БД")
+
+
+@router.delete("/{id}", summary="Удаление поста по guid")
+async def ddelete_post(credentials: Credentials, db: DB, id: UUID):
+    await checkAuth(db, credentials.credentials)
+
+    if not (db_post := await crud_post.get(db, id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
+
+    try:
+        await crud_post.delete(db, db_post, True)
+    except Exception as e:
+        await log.aerror("%s", repr(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось удалить пост")
