@@ -4,6 +4,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
 from fastapi_pagination import Page
+from fastapi_filter import FilterDepends
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 from src.api.dependency import DB, Credentials
@@ -14,7 +15,7 @@ from src.crud.books import DBBook
 from src.crud.users import DBUser
 from src.crud.posts import DBPost
 from src.model.publications import Post as m_Post
-from src.schemas.posts import PostBase, Post
+from src.schemas.posts import PostBase, Post, PostListFilter
 from src.utils.exceptions import checkAuth
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -23,10 +24,14 @@ crud_user = DBUser()
 crud_book = DBBook()
 crud_post = DBPost()
 
+_CollectionOfOfferFilter = Annotated[PostListFilter, FilterDepends(PostListFilter)]
+
 
 @router.get("/all", summary="Получение всех постов", response_model=Page[Post])
-async def get_all(credentials: Credentials, db: DB):
+async def get_all(credentials: Credentials, db: DB, postFilter: _CollectionOfOfferFilter):
     await checkAuth(db, credentials.credentials)
+
+    return await paginate(db, await crud_post.get_filtered(postFilter), unique=False)
 
 
 @router.post("/create", summary="Создание нового поста", response_model=Post)

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
 from src.model.publications import Post
+from src.schemas.posts import PostListFilter
 
 
 class DBPost(CRUD):
@@ -23,8 +24,18 @@ class DBPost(CRUD):
         return await self.get(db, post.guid)
 
 
-    async def delete(self, db: AsyncSession, obj: Book, with_commit=False):
+    async def delete(self, db: AsyncSession, obj: Post, with_commit=False):
         await db.delete(obj)
 
         if with_commit:
             await db.commit()
+
+
+    async def get_filtered(self, post_filter: PostListFilter):
+        query = post_filter.filter(
+            select(Post)
+        )
+
+        print(query)
+
+        return query
