@@ -12,3 +12,4 @@ class BookcrossingPoint(Base):
     title = Column(String, comment="Название точки буккроссинга")
     latitude = Column(Float, comment="Широта")
     longitude = Column(Float, comment="Долгота")
+    address_text = Column(String, comment="Адрес")

@@ -18,10 +18,10 @@ crud_points = DBBookcrossingPoint()
 _BookcrossingPointsFilter = Annotated[PointsFilter, FilterDepends(PointsFilter)]
 
 
-@router.get("/all", summary="Список точек буккроссинга", response_model=Page[BookcrossingPoint])
+@router.get("/all", summary="Список точек буккроссинга", response_model=list[BookcrossingPoint])
 async def get_all(db: DB, credentials: Credentials, points_filter: _BookcrossingPointsFilter):
     await checkAuth(db, credentials.credentials)
-    return await paginate(db, build_all_points(points_filter=points_filter))
+    return (await db.execute(build_all_points(points_filter=points_filter))).mappings().all()
 
 
 @router.post("/create", summary="Создание точки буккросинга")

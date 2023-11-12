@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from fastapi_filter.contrib.sqlalchemy import Filter
@@ -10,7 +11,7 @@ class BookcrossingPointBase(BaseModel):
     title: str
     latitude: float
     longitude: float
-
+    address: str
 
 class BookcrossingPoint(BookcrossingPointBase):
     guid: UUID
@@ -27,3 +28,4 @@ class PointsFilter(Filter):
 
     class Config:
         allow_population_by_field_name = True
+
