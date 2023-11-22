@@ -32,8 +32,6 @@ async def get_genres_or_fail(db: AsyncSession, genres: list[UUID]):
 
 
 async def checkAuth(db: AsyncSession, access_token: str):
-    if access_token == settings.back_token:
-        return
     user_id = Redis.get(access_token)
     if not user_id:
         raise HTTPException(403, detail="Not authenticated")

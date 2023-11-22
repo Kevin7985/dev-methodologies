@@ -11,7 +11,7 @@ class BookcrossingPointBase(BaseModel):
     title: str
     latitude: float
     longitude: float
-    address: str
+    address_text: str
 
 class BookcrossingPoint(BookcrossingPointBase):
     guid: UUID
