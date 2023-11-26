@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Enum, Float, String
+from sqlalchemy import Column, DateTime, Enum, Float, String, Integer
 from sqlalchemy_utils import UUIDType
 
 from src.database import Base
@@ -29,3 +29,10 @@ class PostComment(Base):
     user_id = Column(UUIDType(binary=False), nullable=False, default=uuid.uuid4)
     post_id = Column(UUIDType(binary=False), nullable=False, default=uuid.uuid4)
     created_at = Column(DateTime, default=datetime.utcnow())
+
+
+class PostLike(Base):
+    __tablename__ = "likes"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(UUIDType(binary=False), nullable=False, default=uuid.uuid4)
+    post_id = Column(UUIDType(binary=False), nullable=False, default=uuid.uuid4)
