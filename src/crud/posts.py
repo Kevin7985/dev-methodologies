@@ -24,6 +24,24 @@ class DBPost(CRUD):
         return await self.get(db, post.guid)
 
 
+    async def update(self, db: AsyncSession, obj: Post, with_commit=False) -> Post:
+        update_query = sql_update(Post.__table__).where(Post.guid == obj.guid).values({
+            "book_id": obj.book_id,
+            "title": obj.title,
+            "type": obj.type,
+            "book_rating": obj.book_rating,
+            "updated_at": obj.updated_at
+        })
+
+        await db.execute(update_query)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+        return await self.get(db, obj.guid)
+
+
     async def delete(self, db: AsyncSession, obj: Post, with_commit=False):
         await db.delete(obj)
 
