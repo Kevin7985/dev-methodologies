@@ -26,7 +26,6 @@ async def add_like(credentials: Credentials, db: DB, post_id: UUID):
     if not (db_post := await crud_post.get(db, post_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
 
-
     try:
         likes = await crud_post_like.get(db, post_id)
         if user_id in likes:
@@ -36,3 +35,17 @@ async def add_like(credentials: Credentials, db: DB, post_id: UUID):
     except Exception as e:
         await log.aerror("%s", repr(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить лайк в БД")
+
+
+@router.get("/{post_id}/likes", summary="Получение лайков к посту")
+async def get_likes(credentials: Credentials, db: DB, post_id: UUID):
+    await checkAuth(db, credentials.credentials)
+
+    if not (db_post := await crud_post.get(db, post_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
+
+    try:
+        return await crud_post_like.get(db, post_id)
+    except Exception as e:
+        await log.aerror("%s", repr(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось получить лайки в БД")
