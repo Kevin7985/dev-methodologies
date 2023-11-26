@@ -5,7 +5,7 @@ from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
-from src.model.publications import Post
+from src.model.publications import Post, PostLike
 from src.schemas.posts import PostListFilter
 
 
@@ -54,6 +54,31 @@ class DBPost(CRUD):
             select(Post)
         )
 
-        print(query)
-
         return query
+
+
+class DBLike(CRUD):
+    async def get(self, db: AsyncSession, post_id: UUID):
+        data = (await db.execute(select(PostLike).where(PostLike.post_id == post_id))).scalars().all()
+        return [like.user_id for like in data]
+
+
+    async def getByIds(self, db: AsyncSession, user_id: UUID, post_id: UUID):
+        return (await db.execute(select(PostLike).where(PostLike.post_id == post_id, PostLike.user_id == user_id))).scalars().one_or_none()
+
+
+    async def add(self, db: AsyncSession, user_id: UUID, post_id: UUID, with_commit=False):
+        db.add(PostLike(user_id=user_id, post_id=post_id))
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+
+    async def delete(self, db: AsyncSession, user_id: UUID, post_id: UUID, with_commit=False):
+        post = await self.getByIds(db, user_id, post_id)
+        await db.delete(post)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
