@@ -1,21 +1,20 @@
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
-from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
-from fastapi_pagination import Page
 from fastapi_filter import FilterDepends
+from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 from src.api.dependency import DB, Credentials
-from src.database import Redis
 from src.config import log
-from src.crud.base import CRUDObject
 from src.crud.books import DBBook
-from src.crud.users import DBUser
 from src.crud.posts import DBPost
+from src.crud.users import DBUser
+from src.database import Redis
 from src.model.publications import Post as m_Post
-from src.schemas.posts import PostBase, Post, PostListFilter
+from src.schemas.posts import Post, PostBase, PostListFilter
 from src.utils.exceptions import checkAuth
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -74,7 +73,7 @@ async def get_post_by_id(credentials: Credentials, db: DB, id: UUID):
         return db_post
     except Exception as e:
         await log.aerror("%s", repr(e))
-        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Не удалось получить пост из БД")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось получить пост из БД")
 
 
 @router.put("/update", summary="Обновление поста")

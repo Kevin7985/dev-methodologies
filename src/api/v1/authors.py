@@ -16,9 +16,9 @@ crud_authors = DBAuthor()
 
 
 @router.get("/all", summary="Список всех авторов", response_model=Page[Author])
-async def get_all(credentials: Credentials, db: DB):
+async def get_all(credentials: Credentials, db: DB, author_name: str | None = None):
     await checkAuth(db, credentials.credentials)
-    return await paginate(db, crud_authors.get_all(db), unique=False)
+    return await paginate(db, crud_authors.get_all(author_name=author_name), unique=False)
 
 
 @router.post("/create", summary="Создание нового автора")
