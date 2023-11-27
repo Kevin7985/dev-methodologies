@@ -9,7 +9,6 @@ from src.crud.users import DBUser
 from src.database import Redis
 from src.model.bookcrossing_points import BookcrossingPoint
 from src.utils.const import AUTHORS_NOT_FOUND, GENRES_NOT_FOUND, INVALID_COORDINATES, MAX_LATITUDE, MAX_LONGITUDE
-from src.config import settings
 
 crud_objects = CRUDObject()
 crud_authors = DBAuthor()
