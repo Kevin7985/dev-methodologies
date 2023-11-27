@@ -4,7 +4,6 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
 from fastapi_pagination import Page
-from fastapi_filter import FilterDepends
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 from src.api.dependency import DB, Credentials
@@ -25,7 +24,20 @@ crud_book = DBBook()
 crud_post = DBPost()
 crud_comment = DBComment()
 
-@router.post("/{post_id}/comments/add", summary="Добавление нового комментария")
+
+@router.get("/{post_id}/comments", summary="Получение комментариев к посту", response_model=Page[PostComment])
+async def get_comments(credentials: Credentials, db: DB, post_id: UUID):
+    await checkAuth(db, credentials.credentials)
+
+    user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
+
+    if not await crud_post.get(db, post_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пост с данным guid не найден")
+
+    return await paginate(db, await crud_comment.get_by_post_id(db, post_id), unique=False)
+
+
+@router.post("/{post_id}/comments/add", summary="Добавление нового комментария", response_model=PostComment)
 async def add_comment(credentials: Credentials, db: DB, post_id: UUID, comment: PostCommentIn):
     await checkAuth(db, credentials.credentials)
 
@@ -42,7 +54,6 @@ async def add_comment(credentials: Credentials, db: DB, post_id: UUID, comment: 
         comment_model.created_at = datetime.now()
 
         created_comment = await crud_comment.add(db, comment_model, True)
-        print(created_comment.__dict__)
     except Exception as e:
         await log.aerror("%s @ %s", repr(e), comment)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить коммент в БД")

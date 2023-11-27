@@ -85,6 +85,10 @@ class DBLike(CRUD):
 
 
 class DBComment(CRUD):
+    async def get_by_post_id(self, db: AsyncSession, post_id: UUID):
+        return select(PostComment).where(PostComment.post_id == post_id)
+
+
     async def get(self, db: AsyncSession, comment_id: UUID):
         return (await db.execute(select(PostComment).where(PostComment.guid == comment_id))).scalars().one_or_none()
 

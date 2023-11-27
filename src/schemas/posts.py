@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from src.utils.const import PostTypeEnum
 from src.model.publications import Post as m_Post
+from src.model.publications import PostComment as m_Comment
 
 
 class PostBase(BaseModel):
@@ -52,3 +53,6 @@ class PostCommentIn(BaseModel):
 class PostComment(PostCommentBase):
     guid: UUID
     created_at: datetime
+
+    class Config:
+        orm_mode = True
