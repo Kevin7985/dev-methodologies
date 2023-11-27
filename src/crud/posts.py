@@ -5,7 +5,7 @@ from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
-from src.model.publications import Post, PostLike
+from src.model.publications import Post, PostLike, PostComment
 from src.schemas.posts import PostListFilter
 
 
@@ -82,3 +82,18 @@ class DBLike(CRUD):
 
         if with_commit:
             await db.commit()
+
+
+class DBComment(CRUD):
+    async def get(self, db: AsyncSession, comment_id: UUID):
+        return (await db.execute(select(PostComment).where(PostComment.guid == comment_id))).scalars().one_or_none()
+
+
+    async def add(self, db: AsyncSession, comment: PostComment, with_commit=False):
+        db.add(comment)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+        return await self.get(db, comment.guid)

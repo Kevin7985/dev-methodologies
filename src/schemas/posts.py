@@ -37,3 +37,18 @@ class PostListFilter(Filter):
 
     class Config:
         allow_population_by_field_name=True
+
+
+class PostCommentBase(BaseModel):
+    comment: str
+    user_id: UUID
+    post_id: UUID
+
+
+class PostCommentIn(BaseModel):
+    comment: str
+
+
+class PostComment(PostCommentBase):
+    guid: UUID
+    created_at: datetime
