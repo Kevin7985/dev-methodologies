@@ -98,7 +98,7 @@ async def update_post(credentials: Credentials, db: DB, post: Post):
 
 
 @router.delete("/{id}", summary="Удаление поста по guid")
-async def ddelete_post(credentials: Credentials, db: DB, id: UUID):
+async def delete_post(credentials: Credentials, db: DB, id: UUID):
     await checkAuth(db, credentials.credentials)
 
     if not (db_post := await crud_post.get(db, id)):

@@ -65,4 +65,21 @@ async def add_comment(credentials: Credentials, db: DB, post_id: UUID, comment: 
 async def get_comment_by_id(credentials: Credentials, db: DB, id: UUID):
     await checkAuth(db, credentials.credentials)
 
-    return await crud_comment.get(db, id)
+    if not (db_comment := await crud_comment.get(db, id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный комментарий не найден")
+
+    return db_comment
+
+
+@router.delete("/comments/{id}", summary="Удаление комментария по guid")
+async def delete_comment(credentials: Credentials, db: DB, id: UUID):
+    await checkAuth(db, credentials.credentials)
+
+    if not (db_comment := await crud_comment.get(db, id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный комментарий не найден")
+
+    try:
+        await crud_comment.delete(db, id, True)
+    except Exception as e:
+        await log.aerror("%s", repr(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось удалить комментарий")

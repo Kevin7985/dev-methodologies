@@ -101,3 +101,11 @@ class DBComment(CRUD):
             await db.commit()
 
         return await self.get(db, comment.guid)
+
+
+    async def delete(self, db: AsyncSession, comment_id: UUID, with_commit=False):
+        await db.delete(await self.get(db, comment_id))
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
