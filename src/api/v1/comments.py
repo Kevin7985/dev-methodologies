@@ -59,3 +59,10 @@ async def add_comment(credentials: Credentials, db: DB, post_id: UUID, comment: 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить коммент в БД")
 
     return created_comment
+
+
+@router.get("/comments/{id}", summary="Получение комментария по guid", response_model=PostComment)
+async def get_comment_by_id(credentials: Credentials, db: DB, id: UUID):
+    await checkAuth(db, credentials.credentials)
+
+    return await crud_comment.get(db, id)
