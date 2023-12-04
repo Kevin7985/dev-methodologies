@@ -146,8 +146,13 @@ class DBAuthor(CRUD):
         result = await db.execute(select(Author).filter(Author.guid == guid))
         return result.scalars().one_or_none()
 
-    def get_all(self, db: AsyncSession) -> list[Author]:
-        return select(Author).order_by(Author.surname)
+    def get_all(self, author_name: str | None):
+        query = select(Author).order_by(Author.surname)
+        if author_name:
+            query = query.filter(
+                cast(concat(Author.surname, " ", Author.name, " ", Author.patronymic), String).ilike(f"%{author_name}%")
+            )
+        return query
 
     async def get_many(self, db: AsyncSession, guids: list[UUID]) -> list[Author]:
         result = await db.execute(select(Author).filter(Author.guid.in_(guids)))

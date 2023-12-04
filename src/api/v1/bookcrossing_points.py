@@ -2,8 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status
 from fastapi_filter import FilterDepends
-from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate
 
 from src.api.dependency import DB, Credentials
 from src.config import log
