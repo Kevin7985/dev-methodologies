@@ -1,12 +1,12 @@
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
 
 from fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel
 
-from src.utils.const import PostTypeEnum
 from src.model.publications import Post as m_Post
 from src.model.publications import PostComment as m_Comment
+from src.utils.const import PostTypeEnum
 
 
 class PostBase(BaseModel):
@@ -34,7 +34,7 @@ class PostListFilter(Filter):
     type: PostTypeEnum | None
 
     class Constants(Filter.Constants):
-        model=m_Post
+        model = m_Post
 
     class Config:
         allow_population_by_field_name=True

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Enum, Float, String, Integer
+from sqlalchemy import Column, DateTime, Enum, Float, Integer, String
 from sqlalchemy_utils import UUIDType
 
 from src.database import Base

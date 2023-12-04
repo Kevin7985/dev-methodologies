@@ -1,13 +1,12 @@
-from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status
 
 from src.api.dependency import DB, Credentials
-from src.database import Redis
 from src.config import log
+from src.crud.posts import DBLike, DBPost
 from src.crud.users import DBUser
-from src.crud.posts import DBPost, DBLike
+from src.database import Redis
 from src.utils.exceptions import checkAuth
 
 router = APIRouter(prefix="/posts", tags=["post likes"])
