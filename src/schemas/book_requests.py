@@ -9,7 +9,6 @@ from src.utils.const import BookRequestStatusEnum
 
 
 class BookRequestBase(BaseModel):
-    user_id: UUID
     book_id: UUID
     point_id: UUID
     status: BookRequestStatusEnum
@@ -17,6 +16,7 @@ class BookRequestBase(BaseModel):
 
 class BookRequest(BookRequestBase):
     guid: UUID
+    user_id: UUID
     created_at: datetime
 
     class Config:
