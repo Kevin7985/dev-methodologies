@@ -50,6 +50,11 @@ class PostCommentIn(BaseModel):
     comment: str
 
 
+class PostCommentUpdate(BaseModel):
+    guid: UUID
+    comment: str
+
+
 class PostComment(PostCommentBase):
     guid: UUID
     created_at: datetime

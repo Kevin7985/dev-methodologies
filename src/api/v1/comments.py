@@ -14,7 +14,7 @@ from src.crud.users import DBUser
 from src.crud.posts import DBPost
 from src.crud.posts import DBComment
 from src.model.publications import PostComment as m_Comment
-from src.schemas.posts import PostCommentBase, PostCommentIn, PostComment
+from src.schemas.posts import PostCommentBase, PostCommentIn, PostComment, PostCommentUpdate
 from src.utils.exceptions import checkAuth
 
 router = APIRouter(prefix = "/posts", tags=["post comments"])
@@ -69,6 +69,24 @@ async def get_comment_by_id(credentials: Credentials, db: DB, id: UUID):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный комментарий не найден")
 
     return db_comment
+
+
+@router.put("/comments/update", summary="Обновление комментария")
+async def update_comment(credentials: Credentials, db: DB, comment: PostCommentUpdate):
+    await checkAuth(db, credentials.credentials)
+
+    if not (db_comment := await crud_comment.get(db, comment.guid)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный комментарий не найден")
+
+    try:
+        comment1 = comment.dict()
+        comment_model = m_Comment(**(comment1))
+        updated_comment = await crud_comment.update(db, comment_model, True)
+    except Exception as e:
+        await log.aerror("%s", repr(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить комментарий")
+
+    return updated_comment
 
 
 @router.delete("/comments/{id}", summary="Удаление комментария по guid")
