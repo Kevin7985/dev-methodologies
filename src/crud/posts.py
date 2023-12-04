@@ -5,7 +5,7 @@ from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
-from src.model.publications import Post, PostLike
+from src.model.publications import Post, PostLike, PostComment
 from src.schemas.posts import PostListFilter
 
 
@@ -79,6 +79,47 @@ class DBLike(CRUD):
     async def delete(self, db: AsyncSession, user_id: UUID, post_id: UUID, with_commit=False):
         post = await self.getByIds(db, user_id, post_id)
         await db.delete(post)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+
+class DBComment(CRUD):
+    async def get_by_post_id(self, db: AsyncSession, post_id: UUID):
+        return select(PostComment).where(PostComment.post_id == post_id)
+
+
+    async def get(self, db: AsyncSession, comment_id: UUID):
+        return (await db.execute(select(PostComment).where(PostComment.guid == comment_id))).scalars().one_or_none()
+
+
+    async def add(self, db: AsyncSession, comment: PostComment, with_commit=False):
+        db.add(comment)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+        return await self.get(db, comment.guid)
+
+
+    async def update(self, db: AsyncSession, comment: PostComment, with_commit=False):
+        update_query = sql_update(PostComment.__table__).where(PostComment.guid == comment.guid).values({
+            "comment": comment.comment
+        })
+
+        await db.execute(update_query)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+        return await self.get(db, comment.guid)
+
+
+    async def delete(self, db: AsyncSession, comment_id: UUID, with_commit=False):
+        await db.delete(await self.get(db, comment_id))
         await db.flush()
 
         if with_commit:

@@ -5,6 +5,7 @@ from fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel
 
 from src.model.publications import Post as m_Post
+from src.model.publications import PostComment as m_Comment
 from src.utils.const import PostTypeEnum
 
 
@@ -36,4 +37,27 @@ class PostListFilter(Filter):
         model = m_Post
 
     class Config:
-        allow_population_by_field_name = True
+        allow_population_by_field_name=True
+
+
+class PostCommentBase(BaseModel):
+    comment: str
+    user_id: UUID
+    post_id: UUID
+
+
+class PostCommentIn(BaseModel):
+    comment: str
+
+
+class PostCommentUpdate(BaseModel):
+    guid: UUID
+    comment: str
+
+
+class PostComment(PostCommentBase):
+    guid: UUID
+    created_at: datetime
+
+    class Config:
+        orm_mode = True

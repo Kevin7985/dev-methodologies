@@ -41,8 +41,6 @@ async def add_post_to_db(credentials: Credentials, db: DB, post: PostBase):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная книга не найдена")
 
     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
-    if not await crud_user.get(db, post.user_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь с данным guid не найден")
 
     if not await crud_book.get(db, post.book_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга с данным guid не найдена")
@@ -99,7 +97,7 @@ async def update_post(credentials: Credentials, db: DB, post: Post):
 
 
 @router.delete("/{id}", summary="Удаление поста по guid")
-async def ddelete_post(credentials: Credentials, db: DB, id: UUID):
+async def delete_post(credentials: Credentials, db: DB, id: UUID):
     await checkAuth(db, credentials.credentials)
 
     if not (db_post := await crud_post.get(db, id)):
