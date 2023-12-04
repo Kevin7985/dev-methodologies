@@ -67,11 +67,7 @@ async def get_post_by_id(credentials: Credentials, db: DB, id: UUID):
     if not (db_post := await crud_post.get(db, id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
 
-    try:
-        return db_post
-    except Exception as e:
-        await log.aerror("%s", repr(e))
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось получить пост из БД")
+    return db_post
 
 
 @router.put("/update", summary="Обновление поста")

@@ -50,3 +50,13 @@ async def add_book_request(credentials: Credentials, db: DB, req: BookRequestBas
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить запрос в БД")
 
     return created_req
+
+
+@router.get("/{id}", summary="Получение запроса по guid")
+async def get_req_by_id(credentials: Credentials, db: DB, id: UUID):
+    await checkAuth(db, credentials.credentials)
+
+    if not (db_req := await crud_requests.get(db, id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")
+
+    return db_req
