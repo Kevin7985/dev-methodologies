@@ -72,3 +72,17 @@ async def get_req_by_id(credentials: Credentials, db: DB, id: UUID):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")
 
     return db_req
+
+
+@router.delete("/{id}", summary="Удаление запроса по guid")
+async def delete_req(credentials: Credentials, db: DB, id: UUID):
+    await checkAuth(db, credentials.credentials)
+
+    if not (db_req := await crud_requests.get(db, id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")
+
+    try:
+        await crud_requests.delete(db, db_req, True)
+    except Exception as e:
+        await log.aerror("%s", repr(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось удалить запрос")

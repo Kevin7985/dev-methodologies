@@ -24,6 +24,13 @@ class DBBookRequest(CRUD):
         return await self.get(db, req.guid)
 
 
+    async def delete(self, db: AsyncSession, req: BookRequest, with_commit=False):
+        await db.delete(req)
+
+        if with_commit:
+            await db.commit()
+            
+
     async def get_filtered(self, req_filter: BookRequestListFilter):
         query = req_filter.filter(select(BookRequest))
 
