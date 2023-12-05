@@ -14,10 +14,10 @@ from src.crud.books import DBBook
 from src.crud.book_requests import DBBookRequest
 from src.model.book_requests import BookRequest as m_BookRequest
 from src.crud.bookcrossing_points import DBBookcrossingPoint
-from src.schemas.book_requests import BookRequestBase, BookRequestListFilter
+from src.schemas.book_requests import BookRequestBase, BookRequest, BookRequestListFilter
 from src.utils.exceptions import checkAuth
 
-router = APIRouter(prefix="/book-requests", tags=["Book requests"])
+router = APIRouter(prefix="/book-requests", tags=["book requests"])
 
 crud_book = DBBook()
 crud_points = DBBookcrossingPoint()
@@ -50,6 +50,18 @@ async def add_book_request(credentials: Credentials, db: DB, req: BookRequestBas
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось сохранить запрос в БД")
 
     return created_req
+
+
+@router.get("/all", summary="Получение всех запросов", response_model=Page[BookRequest])
+async def get_all(credentials: Credentials, db: DB, reqFilter: _CollectionOfOfferFilter):
+    await checkAuth(db, credentials.credentials)
+
+    print(reqFilter)
+
+    sql_req = await crud_requests.get_filtered(reqFilter)
+    print(sql_req)
+
+    return await paginate(db, await crud_requests.get_filtered(reqFilter), unique=False)
 
 
 @router.get("/{id}", summary="Получение запроса по guid")

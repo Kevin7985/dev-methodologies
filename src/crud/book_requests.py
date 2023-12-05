@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
 from src.model.book_requests import BookRequest
+from src.schemas.book_requests import BookRequestListFilter
 
 
 class DBBookRequest(CRUD):
@@ -21,3 +22,9 @@ class DBBookRequest(CRUD):
             await db.commit()
 
         return await self.get(db, req.guid)
+
+
+    async def get_filtered(self, req_filter: BookRequestListFilter):
+        query = req_filter.filter(select(BookRequest))
+
+        return query
