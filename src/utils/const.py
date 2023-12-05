@@ -16,3 +16,8 @@ class GenreEnum(StrEnum):
 class PostTypeEnum(StrEnum):
     REVIEW = "review"
     OTHER = "other"
+
+
+class BookRequestStatusEnum(StrEnum):
+    ACTIVE = "active"
+    COMPLETED = "completed"

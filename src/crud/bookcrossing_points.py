@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +21,9 @@ class DBBookcrossingPoint(CRUD):
     async def get_all(self, db: AsyncSession, points_filter: PointsFilter) -> list[BookcrossingPoint]:
         query = build_all_points(points_filter=points_filter)
         return (await db.execute(query)).scalars().all()
+
+    async def get(self, db: AsyncSession, point_id: UUID) -> BookcrossingPoint:
+        return (await db.execute(select(BookcrossingPoint).where(BookcrossingPoint.guid == point_id))).scalars().one_or_none()
 
     async def create(self, db: AsyncSession, created_obj, with_commit=False) -> BookcrossingPoint:
         validate_coordinates_or_fail(created_obj)
