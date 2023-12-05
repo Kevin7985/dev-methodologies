@@ -23,6 +23,16 @@ class BookRequest(BookRequestBase):
         orm_mode = True
 
 
+class BookRequestUpdate(BaseModel):
+    guid: UUID | None
+    book_id: UUID | None
+    point_id: UUID | None
+    status: BookRequestStatusEnum | None
+
+    class Config:
+        orm_mode = True
+
+
 class BookRequestListFilter(Filter):
     user_id: UUID | None
     book_id: UUID | None

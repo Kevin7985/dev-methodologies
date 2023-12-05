@@ -14,7 +14,7 @@ from src.crud.books import DBBook
 from src.crud.book_requests import DBBookRequest
 from src.model.book_requests import BookRequest as m_BookRequest
 from src.crud.bookcrossing_points import DBBookcrossingPoint
-from src.schemas.book_requests import BookRequestBase, BookRequest, BookRequestListFilter
+from src.schemas.book_requests import BookRequestBase, BookRequest, BookRequestUpdate, BookRequestListFilter
 from src.utils.exceptions import checkAuth
 
 router = APIRouter(prefix="/book-requests", tags=["book requests"])
@@ -36,7 +36,7 @@ async def add_book_request(credentials: Credentials, db: DB, req: BookRequestBas
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная книга не найдена")
 
     if not (db_point := await crud_points.get(db, req.point_id)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная точка букроссинга не найдена")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная точка буккроссинга не найдена")
 
     try:
         req1 = req.dict()
@@ -56,10 +56,7 @@ async def add_book_request(credentials: Credentials, db: DB, req: BookRequestBas
 async def get_all(credentials: Credentials, db: DB, reqFilter: _CollectionOfOfferFilter):
     await checkAuth(db, credentials.credentials)
 
-    print(reqFilter)
-
     sql_req = await crud_requests.get_filtered(reqFilter)
-    print(sql_req)
 
     return await paginate(db, await crud_requests.get_filtered(reqFilter), unique=False)
 
@@ -72,6 +69,30 @@ async def get_req_by_id(credentials: Credentials, db: DB, id: UUID):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")
 
     return db_req
+
+
+@router.put("/update", summary="Обновление запроса")
+async def update_req(credentials: Credentials, db: DB, req: BookRequestUpdate):
+    await checkAuth(db, credentials.credentials)
+
+    user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
+
+    if not (db_req := await crud_requests.get(db, req.guid)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")
+
+    if not (db_book := await crud_book.get(db, req.book_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная книга не найдена")
+
+    if not (db_point := await crud_points.get(db, req.point_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная точка буккроссинга не найдена")
+
+    try:
+        updated_req = await crud_requests.update(db, req, True)
+    except Exception as e:
+        await log.aerror("%s", repr(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось обновить запрос")
+
+    return updated_req
 
 
 @router.delete("/{id}", summary="Удаление запроса по guid")

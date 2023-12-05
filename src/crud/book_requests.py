@@ -24,12 +24,34 @@ class DBBookRequest(CRUD):
         return await self.get(db, req.guid)
 
 
+    async def update(self, db: AsyncSession, req: BookRequest, with_commit=False):
+        update_query = (
+            sql_update(BookRequest.__table__)
+            .where(BookRequest.guid == req.guid)
+            .values(
+                {
+                    "book_id": req.book_id,
+                    "point_id": req.point_id,
+                    "status": req.status
+                }
+            )
+        )
+
+        await db.execute(update_query)
+        await db.flush()
+
+        if with_commit:
+            await db.commit()
+
+        return await self.get(db, req.guid)
+
+
     async def delete(self, db: AsyncSession, req: BookRequest, with_commit=False):
         await db.delete(req)
 
         if with_commit:
             await db.commit()
-            
+
 
     async def get_filtered(self, req_filter: BookRequestListFilter):
         query = req_filter.filter(select(BookRequest))
