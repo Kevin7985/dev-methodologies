@@ -9,12 +9,12 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 
 from src.api.dependency import DB, Credentials
 from src.config import log
-from src.database import Redis
-from src.crud.books import DBBook
 from src.crud.book_requests import DBBookRequest
-from src.model.book_requests import BookRequest as m_BookRequest
 from src.crud.bookcrossing_points import DBBookcrossingPoint
-from src.schemas.book_requests import BookRequestBase, BookRequest, BookRequestUpdate, BookRequestListFilter
+from src.crud.books import DBBook
+from src.database import Redis
+from src.model.book_requests import BookRequest as m_BookRequest
+from src.schemas.book_requests import BookRequest, BookRequestBase, BookRequestListFilter, BookRequestUpdate
 from src.utils.exceptions import checkAuth
 
 router = APIRouter(prefix="/book-requests", tags=["book requests"])
@@ -32,10 +32,10 @@ async def add_book_request(credentials: Credentials, db: DB, req: BookRequestBas
 
     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
 
-    if not (db_book := await crud_book.get(db, req.book_id)):
+    if not (await crud_book.get(db, req.book_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная книга не найдена")
 
-    if not (db_point := await crud_points.get(db, req.point_id)):
+    if not (await crud_points.get(db, req.point_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная точка буккроссинга не найдена")
 
     try:
@@ -55,10 +55,7 @@ async def add_book_request(credentials: Credentials, db: DB, req: BookRequestBas
 @router.get("/all", summary="Получение всех запросов", response_model=Page[BookRequest])
 async def get_all(credentials: Credentials, db: DB, reqFilter: _CollectionOfOfferFilter):
     await checkAuth(db, credentials.credentials)
-
-    sql_req = await crud_requests.get_filtered(reqFilter)
-
-    return await paginate(db, await crud_requests.get_filtered(reqFilter), unique=False)
+    return await paginate(db, crud_requests.get_filtered(reqFilter), unique=False)
 
 
 @router.get("/{id}", summary="Получение запроса по guid")
@@ -77,13 +74,13 @@ async def update_req(credentials: Credentials, db: DB, req: BookRequestUpdate):
 
     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
 
-    if not (db_req := await crud_requests.get(db, req.guid)):
+    if not (await crud_requests.get(db, req.guid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")
 
-    if not (db_book := await crud_book.get(db, req.book_id)):
+    if not (await crud_book.get(db, req.book_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная книга не найдена")
 
-    if not (db_point := await crud_points.get(db, req.point_id)):
+    if not (await crud_points.get(db, req.point_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная точка буккроссинга не найдена")
 
     try:

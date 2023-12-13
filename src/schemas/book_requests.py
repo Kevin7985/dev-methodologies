@@ -1,11 +1,19 @@
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel
 from fastapi_filter.contrib.sqlalchemy import Filter
+from pydantic import BaseModel
 
 from src.model.book_requests import BookRequest as m_BookRequest
+from src.schemas.books import Book
 from src.utils.const import BookRequestStatusEnum
+
+
+class Publisher(BaseModel):
+    guid: UUID
+    name: str
+    avatar: str | None
+    login: str
 
 
 class BookRequestBase(BaseModel):
@@ -14,10 +22,13 @@ class BookRequestBase(BaseModel):
     status: BookRequestStatusEnum
 
 
-class BookRequest(BookRequestBase):
+class BookRequest(BaseModel):
     guid: UUID
-    user_id: UUID
     created_at: datetime
+    point_id: UUID
+    status: BookRequestStatusEnum
+    user: Publisher
+    book: Book
 
     class Config:
         orm_mode = True
@@ -43,4 +54,4 @@ class BookRequestListFilter(Filter):
         model = m_BookRequest
 
     class Config:
-        allow_population_by_field_name=True
+        allow_population_by_field_name = True

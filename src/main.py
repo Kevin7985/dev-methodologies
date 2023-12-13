@@ -2,7 +2,7 @@ import stackprinter
 import uvicorn
 from fastapi_pagination import add_pagination
 
-from src.api.v1 import authors, bookcrossing_points, books, genres, likes, posts, users, comments, book_requests
+from src.api.v1 import authors, book_requests, bookcrossing_points, books, comments, genres, likes, posts, users
 from src.config import app
 
 # TODO: automatically include all available routers
