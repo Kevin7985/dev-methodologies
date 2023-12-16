@@ -74,7 +74,7 @@ async def get_post_by_id(credentials: Credentials, db: DB, id: UUID):
 async def update_post(credentials: Credentials, db: DB, post: Post):
     await checkAuth(db, credentials.credentials)
 
-    if not (db_post := await crud_post.get(db, post.guid)):
+    if not (await crud_post.get(db, post.guid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
 
     if (post.book_id) and (not await crud_book.get(db, post.book_id)):

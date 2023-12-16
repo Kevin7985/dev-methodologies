@@ -1,23 +1,21 @@
-from typing import Annotated
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 from src.api.dependency import DB, Credentials
-from src.database import Redis
 from src.config import log
 from src.crud.books import DBBook
+from src.crud.posts import DBComment, DBPost
 from src.crud.users import DBUser
-from src.crud.posts import DBPost
-from src.crud.posts import DBComment
+from src.database import Redis
 from src.model.publications import PostComment as m_Comment
-from src.schemas.posts import PostCommentBase, PostCommentIn, PostComment, PostCommentUpdate
+from src.schemas.posts import PostComment, PostCommentIn, PostCommentUpdate
 from src.utils.exceptions import checkAuth
 
-router = APIRouter(prefix = "/posts", tags=["post comments"])
+router = APIRouter(prefix="/posts", tags=["post comments"])
 
 crud_user = DBUser()
 crud_book = DBBook()
@@ -75,7 +73,7 @@ async def get_comment_by_id(credentials: Credentials, db: DB, id: UUID):
 async def update_comment(credentials: Credentials, db: DB, comment: PostCommentUpdate):
     await checkAuth(db, credentials.credentials)
 
-    if not (db_comment := await crud_comment.get(db, comment.guid)):
+    if not (await crud_comment.get(db, comment.guid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный комментарий не найден")
 
     try:
@@ -93,7 +91,7 @@ async def update_comment(credentials: Credentials, db: DB, comment: PostCommentU
 async def delete_comment(credentials: Credentials, db: DB, id: UUID):
     await checkAuth(db, credentials.credentials)
 
-    if not (db_comment := await crud_comment.get(db, id)):
+    if not (await crud_comment.get(db, id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный комментарий не найден")
 
     try:
