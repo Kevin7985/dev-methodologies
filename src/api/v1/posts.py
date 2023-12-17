@@ -37,12 +37,9 @@ async def get_all(credentials: Credentials, db: DB, postFilter: _CollectionOfOff
 async def add_post_to_db(credentials: Credentials, db: DB, post: PostBase):
     await checkAuth(db, credentials.credentials)
 
-    if not await crud_book.get(db, post.book_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данная книга не найдена")
-
     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
 
-    if not await crud_book.get(db, post.book_id):
+    if (post.book_id) and (not await crud_book.get(db, post.book_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга с данным guid не найдена")
 
     try:
