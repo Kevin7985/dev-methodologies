@@ -31,6 +31,8 @@ class DBPost(CRUD):
                     "book_id": obj.book_id,
                     "title": obj.title,
                     "type": obj.type,
+                    "content": obj.content,
+                    "image": obj.image,
                     "book_rating": obj.book_rating,
                     "updated_at": obj.updated_at,
                 }
