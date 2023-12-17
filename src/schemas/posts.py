@@ -9,12 +9,12 @@ from src.utils.const import PostTypeEnum
 
 
 class PostBase(BaseModel):
-    book_id: UUID
+    book_id: UUID | None
     type: PostTypeEnum
     title: str | None
     content: str | None
     image: str | None
-    book_rating: float = 0
+    book_rating: float | None = 0
 
 
 class Post(PostBase):
