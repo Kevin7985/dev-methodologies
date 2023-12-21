@@ -16,7 +16,7 @@ class Post(Base):
     title = Column(String, comment="Название поста")
     content = Column(String, comment="Текст поста")
     image = Column(String, comment="Путь до изображения")
-    book_id = Column(UUIDType(binary=False), nullable=False, default=uuid.uuid4)
+    book_id = Column(UUIDType(binary=False), default=uuid.uuid4)
     book_rating = Column(Float, comment="Рейтинг книги")
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow())

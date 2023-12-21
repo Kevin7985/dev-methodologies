@@ -79,7 +79,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "*/schemas/*" = ["A003"]
 "src/utils/*" = ["S105", "S311"]
 "src/crud/*" = ["S608", "A002", "A001", "FBT002"]
-
+"src/*" = ["FBT001", "FBT003"]
 
 
 [tool.pytest.ini_options]

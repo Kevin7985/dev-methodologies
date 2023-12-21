@@ -5,7 +5,7 @@ from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
-from src.model.publications import Post, PostLike, PostComment
+from src.model.publications import Post, PostComment, PostLike
 from src.schemas.posts import PostListFilter
 
 
@@ -31,6 +31,8 @@ class DBPost(CRUD):
                     "book_id": obj.book_id,
                     "title": obj.title,
                     "type": obj.type,
+                    "content": obj.content,
+                    "image": obj.image,
                     "book_rating": obj.book_rating,
                     "updated_at": obj.updated_at,
                 }
@@ -45,7 +47,7 @@ class DBPost(CRUD):
 
         return await self.get(db, obj.guid)
 
-    async def delete(self, db: AsyncSession, obj: Post, with_commit=False):
+    async def delete(self, db: AsyncSession, obj: Post, with_commit: bool = False):
         await db.delete(obj)
 
         if with_commit:
@@ -89,10 +91,8 @@ class DBComment(CRUD):
     async def get_by_post_id(self, db: AsyncSession, post_id: UUID):
         return select(PostComment).where(PostComment.post_id == post_id)
 
-
     async def get(self, db: AsyncSession, comment_id: UUID):
         return (await db.execute(select(PostComment).where(PostComment.guid == comment_id))).scalars().one_or_none()
-
 
     async def add(self, db: AsyncSession, comment: PostComment, with_commit=False):
         db.add(comment)
@@ -103,11 +103,12 @@ class DBComment(CRUD):
 
         return await self.get(db, comment.guid)
 
-
     async def update(self, db: AsyncSession, comment: PostComment, with_commit=False):
-        update_query = sql_update(PostComment.__table__).where(PostComment.guid == comment.guid).values({
-            "comment": comment.comment
-        })
+        update_query = (
+            sql_update(PostComment.__table__)
+            .where(PostComment.guid == comment.guid)
+            .values({"comment": comment.comment})
+        )
 
         await db.execute(update_query)
         await db.flush()
@@ -116,7 +117,6 @@ class DBComment(CRUD):
             await db.commit()
 
         return await self.get(db, comment.guid)
-
 
     async def delete(self, db: AsyncSession, comment_id: UUID, with_commit=False):
         await db.delete(await self.get(db, comment_id))

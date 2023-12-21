@@ -22,7 +22,7 @@ async def add_like(credentials: Credentials, db: DB, post_id: UUID):
 
     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
 
-    if not (db_post := await crud_post.get(db, post_id)):
+    if not (await crud_post.get(db, post_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
 
     try:
@@ -40,7 +40,7 @@ async def add_like(credentials: Credentials, db: DB, post_id: UUID):
 async def get_likes(credentials: Credentials, db: DB, post_id: UUID) -> list[UUID]:
     await checkAuth(db, credentials.credentials)
 
-    if not (db_post := await crud_post.get(db, post_id)):
+    if not (await crud_post.get(db, post_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
 
     try:
@@ -56,7 +56,7 @@ async def delete_like(credentials: Credentials, db: DB, post_id: UUID):
 
     user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
 
-    if not (db_post := await crud_post.get(db, post_id)):
+    if not (await crud_post.get(db, post_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
 
     try:
@@ -66,6 +66,5 @@ async def delete_like(credentials: Credentials, db: DB, post_id: UUID):
 
         await crud_post_like.delete(db, user_id, post_id, True)
     except Exception as e:
-        print(e)
         await log.aerror("%s", repr(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Не удалось удалить лайк из БД")
