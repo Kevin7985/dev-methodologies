@@ -9,6 +9,12 @@ from src.schemas.books import Book
 from src.utils.const import BookRequestStatusEnum
 
 
+class BookcrossingPoint(BaseModel):
+    guid: UUID
+    title: str
+    address_text: str
+
+
 class Publisher(BaseModel):
     guid: UUID
     name: str
@@ -25,7 +31,7 @@ class BookRequestBase(BaseModel):
 class BookRequest(BaseModel):
     guid: UUID
     created_at: datetime
-    point_id: UUID
+    point: BookcrossingPoint
     status: BookRequestStatusEnum
     user: Publisher
     book: Book
