@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
 from src.model.book_requests import BookRequest
+from src.model.bookcrossing_points import BookcrossingPoint
 from src.model.books import Book
 from src.model.users import User
 from src.schemas.book_requests import BookRequestListFilter
@@ -50,7 +51,6 @@ class DBBookRequest(CRUD):
             select(
                 BookRequest.guid,
                 BookRequest.created_at,
-                BookRequest.point_id,
                 BookRequest.status,
                 func.json_build_object(
                     "guid",
@@ -69,9 +69,18 @@ class DBBookRequest(CRUD):
                 func.json_build_object(
                     "guid", User.guid, "name", User.name, "avatar", User.avatar, "login", User.login
                 ).label("user"),
+                func.json_build_object(
+                    "guid",
+                    BookcrossingPoint.guid,
+                    "title",
+                    BookcrossingPoint.title,
+                    "address_text",
+                    BookcrossingPoint.address_text,
+                ).label("point"),
             )
             .join(User, User.guid == BookRequest.user_id)
             .join(Book, Book.guid == BookRequest.book_id)
+            .join(BookcrossingPoint, BookcrossingPoint.guid == BookRequest.point_id)
         )
 
         return query
