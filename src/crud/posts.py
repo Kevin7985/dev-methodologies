@@ -1,19 +1,57 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy import update as sql_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
+from src.model.books import Book
 from src.model.publications import Post, PostComment, PostLike
-from src.schemas.posts import PostListFilter
+from src.model.users import User
+from src.schemas.posts import PostAllInfo, PostListFilter
+
+
+def build_post_query():
+    query = (
+        select(
+            Post.guid,
+            Post.created_at,
+            Post.content,
+            Post.image,
+            Post.title,
+            Post.type,
+            Post.updated_at,
+            func.json_build_object(
+                "guid",
+                Book.guid,
+                "title",
+                Book.title,
+                "pic_file_name",
+                Book.pic_file_name,
+                "description",
+                Book.description,
+                "isbn",
+                Book.isbn,
+                "rating",
+                Book.rating,
+            ).label("book"),
+            func.json_build_object(
+                "guid", User.guid, "name", User.name, "avatar", User.avatar, "login", User.login
+            ).label("user"),
+        )
+        .join(User, User.guid == Post.user_id)
+        .join(Book, Book.guid == Post.book_id, isouter=True)
+    )
+    return query
 
 
 class DBPost(CRUD):
-    async def get(self, db: AsyncSession, guid: UUID) -> Post | None:
-        return (await db.execute(select(Post).where(Post.guid == guid))).scalars().one_or_none()
+    async def get(self, db: AsyncSession, guid: UUID) -> PostAllInfo | None:
+        base_query = build_post_query()
+        query = base_query.filter(Post.guid == guid)
+        return (await db.execute(query)).scalars().one_or_none()
 
-    async def create(self, db: AsyncSession, post: Post, with_commit=False) -> Post:
+    async def create(self, db: AsyncSession, post: Post, with_commit=False) -> PostAllInfo:
         db.add(post)
         await db.flush()
 
@@ -22,7 +60,7 @@ class DBPost(CRUD):
 
         return await self.get(db, post.guid)
 
-    async def update(self, db: AsyncSession, obj: Post, with_commit=False) -> Post:
+    async def update(self, db: AsyncSession, obj: Post, with_commit=False) -> PostAllInfo:
         update_query = (
             sql_update(Post.__table__)
             .where(Post.guid == obj.guid)
@@ -54,7 +92,8 @@ class DBPost(CRUD):
             await db.commit()
 
     async def get_filtered(self, post_filter: PostListFilter):
-        query = post_filter.filter(select(Post))
+        base_query = build_post_query()
+        query = post_filter.filter(base_query)
 
         return query
 

@@ -58,7 +58,7 @@ async def get_all(credentials: Credentials, db: DB, reqFilter: _CollectionOfOffe
     return await paginate(db, crud_requests.get_filtered(reqFilter), unique=False)
 
 
-@router.get("/{id}", summary="Получение запроса по guid")
+@router.get("/{id}", summary="Получение запроса по guid", response_model=BookRequest)
 async def get_req_by_id(credentials: Credentials, db: DB, id: UUID):
     await checkAuth(db, credentials.credentials)
 
@@ -68,7 +68,7 @@ async def get_req_by_id(credentials: Credentials, db: DB, id: UUID):
     return db_req
 
 
-@router.put("/update", summary="Обновление запроса")
+@router.put("/update", summary="Обновление запроса", response_model=BookRequest)
 async def update_req(credentials: Credentials, db: DB, req: BookRequestUpdate):
     await checkAuth(db, credentials.credentials)
 
