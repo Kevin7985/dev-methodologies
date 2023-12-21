@@ -1,15 +1,16 @@
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 
-import pytest
 import pytest_asyncio
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
-from sqlalchemy import JSON
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
-from src.main import app as main_app
+
 from src.database import Base, get_session
+from src.main import app as main_app
+from src.model.users import User
+from tests.config import test_user
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite://"
 
@@ -17,16 +18,10 @@ engine = create_async_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_
 
 Session = async_sessionmaker(engine, expire_on_commit=False)
 
+
 async def add_data_to_tables(conn, tables: dict):
     for table, data in tables.items():
         await conn.execute(table.__table__.insert(), data)
-
-
-def replace_jsonb_with_json(tables: list):
-    for table in tables:
-        for column in table.__table__.columns:
-            if column.type.__class__.__name__ == "JSONB":
-                column.type = JSON()
 
 
 @pytest_asyncio.fixture
@@ -36,11 +31,9 @@ async def alembic_config():
 
 @pytest_asyncio.fixture()
 async def app():
-    # replace_jsonb_with_json(replace_jsonb_with_json_tables)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        # await add_data_to_tables(conn, TABLES_NEED_DATA)
-    yield main_app
+        yield main_app
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
@@ -71,3 +64,10 @@ async def client(app: FastAPI, db_session: Session) -> AsyncGenerator:
     app.router.startup = async_dummy
     with TestClient(app) as client:
         yield client
+
+
+@pytest_asyncio.fixture()
+async def register_user(client, mocker: MockerFixture) -> User:
+    response = client.post("/users/register", json=test_user)
+    assert response.status_code == status.HTTP_201_CREATED
+    return User(**response.json())
