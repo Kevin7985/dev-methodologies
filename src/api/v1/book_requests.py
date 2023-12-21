@@ -54,13 +54,13 @@ async def add_book_request(credentials: Credentials, db: DB, req: BookRequestBas
 
 @router.get("/all", summary="Получение всех запросов", response_model=Page[BookRequest])
 async def get_all(credentials: Credentials, db: DB, reqFilter: _CollectionOfOfferFilter):
-    await checkAuth(db, credentials.credentials)
+    # await checkAuth(db, credentials.credentials)
     return await paginate(db, crud_requests.get_filtered(reqFilter), unique=False)
 
 
-@router.get("/{id}", summary="Получение запроса по guid", response_model=BookRequest)
+@router.get("/{id}", summary="Получение запроса по guid")
 async def get_req_by_id(credentials: Credentials, db: DB, id: UUID):
-    await checkAuth(db, credentials.credentials)
+    # await checkAuth(db, credentials.credentials)
 
     if not (db_req := await crud_requests.get(db, id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")
@@ -70,9 +70,9 @@ async def get_req_by_id(credentials: Credentials, db: DB, id: UUID):
 
 @router.put("/update", summary="Обновление запроса", response_model=BookRequest)
 async def update_req(credentials: Credentials, db: DB, req: BookRequestUpdate):
-    await checkAuth(db, credentials.credentials)
+    # await checkAuth(db, credentials.credentials)
 
-    user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
+    # user_id = UUID(Redis.get(credentials.credentials).decode("utf-8"))
 
     if not (await crud_requests.get(db, req.guid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")
@@ -94,7 +94,7 @@ async def update_req(credentials: Credentials, db: DB, req: BookRequestUpdate):
 
 @router.delete("/{id}", summary="Удаление запроса по guid")
 async def delete_req(credentials: Credentials, db: DB, id: UUID):
-    await checkAuth(db, credentials.credentials)
+    # await checkAuth(db, credentials.credentials)
 
     if not (db_req := await crud_requests.get(db, id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный запрос не найден")

@@ -22,6 +22,7 @@ class BookcrossingPoint(BookcrossingPointBase):
 
 class PointsFilter(Filter):
     title__ilike: str = Field(alias="point_title", default=None)
+    address_text__ilike: str = Field(alias="point_address", default=None)
 
     class Constants(Filter.Constants):
         model = m_BookcrossingPoint

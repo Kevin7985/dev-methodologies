@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.crud.base import CRUD
 from src.model.book_requests import BookRequest
+from src.model.bookcrossing_points import BookcrossingPoint
 from src.model.books import Book
 from src.model.users import User
 from src.schemas.book_requests import BookRequest as BookRequest_s
@@ -17,7 +18,6 @@ def build_book_request_query():
         select(
             BookRequest.guid,
             BookRequest.created_at,
-            BookRequest.point_id,
             BookRequest.status,
             func.json_build_object(
                 "guid",
@@ -36,16 +36,25 @@ def build_book_request_query():
             func.json_build_object(
                 "guid", User.guid, "name", User.name, "avatar", User.avatar, "login", User.login
             ).label("user"),
+            func.json_build_object(
+                "guid",
+                BookcrossingPoint.guid,
+                "title",
+                BookcrossingPoint.title,
+                "address_text",
+                BookcrossingPoint.address_text,
+            ).label("point"),
         )
         .join(User, User.guid == BookRequest.user_id)
         .join(Book, Book.guid == BookRequest.book_id)
+        .join(BookcrossingPoint, BookcrossingPoint.guid == BookRequest.point_id)
     )
     return query
 
 
 class DBBookRequest(CRUD):
     async def get(self, db: AsyncSession, guid: UUID) -> BookRequest_s | None:
-        return (await db.execute(build_book_request_query().where(BookRequest.guid == guid))).scalars().one_or_none()
+        return (await db.execute((build_book_request_query()).where(BookRequest.guid == guid))).mappings().one_or_none()
 
     async def create(self, db: AsyncSession, req: BookRequest, with_commit=False) -> BookRequest_s:
         db.add(req)
@@ -79,4 +88,5 @@ class DBBookRequest(CRUD):
 
     def get_filtered(self, req_filter: BookRequestListFilter):
         query = req_filter.filter(build_book_request_query())
+
         return query

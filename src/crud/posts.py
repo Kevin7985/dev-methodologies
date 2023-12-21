@@ -49,7 +49,7 @@ class DBPost(CRUD):
     async def get(self, db: AsyncSession, guid: UUID) -> PostAllInfo | None:
         base_query = build_post_query()
         query = base_query.filter(Post.guid == guid)
-        return (await db.execute(query)).scalars().one_or_none()
+        return (await db.execute(query)).mappings().one_or_none()
 
     async def create(self, db: AsyncSession, post: Post, with_commit=False) -> PostAllInfo:
         db.add(post)
