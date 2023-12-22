@@ -14,7 +14,7 @@ from src.crud.posts import DBPost
 from src.crud.users import DBUser
 from src.database import Redis
 from src.model.publications import Post as m_Post
-from src.schemas.posts import Post, PostBase, PostListFilter
+from src.schemas.posts import PostAllInfo, PostBase, PostListFilter
 from src.utils.exceptions import checkAuth
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -26,14 +26,14 @@ crud_post = DBPost()
 _CollectionOfOfferFilter = Annotated[PostListFilter, FilterDepends(PostListFilter)]
 
 
-@router.get("/all", summary="Получение всех постов", response_model=Page[Post])
+@router.get("/all", summary="Получение всех постов", response_model=Page[PostAllInfo])
 async def get_all(credentials: Credentials, db: DB, postFilter: _CollectionOfOfferFilter):
-    await checkAuth(db, credentials.credentials)
+    # await checkAuth(db, credentials.credentials)
 
     return await paginate(db, await crud_post.get_filtered(postFilter), unique=False)
 
 
-@router.post("/create", summary="Создание нового поста", response_model=Post)
+@router.post("/create", summary="Создание нового поста", response_model=PostAllInfo)
 async def add_post_to_db(credentials: Credentials, db: DB, post: PostBase):
     await checkAuth(db, credentials.credentials)
 
@@ -57,9 +57,9 @@ async def add_post_to_db(credentials: Credentials, db: DB, post: PostBase):
     return created_post
 
 
-@router.get("/{id}", summary="Получение поста по guid", response_model=Post)
+@router.get("/{id}", summary="Получение поста по guid", response_model=PostAllInfo)
 async def get_post_by_id(credentials: Credentials, db: DB, id: UUID):
-    await checkAuth(db, credentials.credentials)
+    # await checkAuth(db, credentials.credentials)
 
     if not (db_post := await crud_post.get(db, id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
@@ -68,8 +68,8 @@ async def get_post_by_id(credentials: Credentials, db: DB, id: UUID):
 
 
 @router.put("/update", summary="Обновление поста")
-async def update_post(credentials: Credentials, db: DB, post: Post):
-    await checkAuth(db, credentials.credentials)
+async def update_post(credentials: Credentials, db: DB, post: PostAllInfo):
+    # await checkAuth(db, credentials.credentials)
 
     if not (await crud_post.get(db, post.guid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
@@ -91,7 +91,7 @@ async def update_post(credentials: Credentials, db: DB, post: Post):
 
 @router.delete("/{id}", summary="Удаление поста по guid")
 async def delete_post(credentials: Credentials, db: DB, id: UUID):
-    await checkAuth(db, credentials.credentials)
+    # await checkAuth(db, credentials.credentials)
 
     if not (db_post := await crud_post.get(db, id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")

@@ -9,14 +9,54 @@ from src.model.book_requests import BookRequest
 from src.model.bookcrossing_points import BookcrossingPoint
 from src.model.books import Book
 from src.model.users import User
+from src.schemas.book_requests import BookRequest as BookRequest_s
 from src.schemas.book_requests import BookRequestListFilter
 
 
-class DBBookRequest(CRUD):
-    async def get(self, db: AsyncSession, guid: UUID) -> BookRequest | None:
-        return (await db.execute(select(BookRequest).where(BookRequest.guid == guid))).scalars().one_or_none()
+def build_book_request_query():
+    query = (
+        select(
+            BookRequest.guid,
+            BookRequest.created_at,
+            BookRequest.status,
+            func.json_build_object(
+                "guid",
+                Book.guid,
+                "title",
+                Book.title,
+                "pic_file_name",
+                Book.pic_file_name,
+                "description",
+                Book.description,
+                "isbn",
+                Book.isbn,
+                "rating",
+                Book.rating,
+            ).label("book"),
+            func.json_build_object(
+                "guid", User.guid, "name", User.name, "avatar", User.avatar, "login", User.login
+            ).label("user"),
+            func.json_build_object(
+                "guid",
+                BookcrossingPoint.guid,
+                "title",
+                BookcrossingPoint.title,
+                "address_text",
+                BookcrossingPoint.address_text,
+            ).label("point"),
+        )
+        .join(User, User.guid == BookRequest.user_id)
+        .join(Book, Book.guid == BookRequest.book_id)
+        .join(BookcrossingPoint, BookcrossingPoint.guid == BookRequest.point_id)
+    )
+    return query
 
-    async def create(self, db: AsyncSession, req: BookRequest, with_commit=False) -> BookRequest:
+
+class DBBookRequest(CRUD):
+    async def get(self, db: AsyncSession, guid: UUID) -> BookRequest_s | None:
+        return (await db.execute((build_book_request_query()).where(BookRequest.guid == guid))).mappings().one_or_none()
+
+    async def create(self, db: AsyncSession, req: BookRequest, with_commit=False) -> BookRequest_s:
         db.add(req)
         await db.flush()
 
@@ -47,40 +87,6 @@ class DBBookRequest(CRUD):
             await db.commit()
 
     def get_filtered(self, req_filter: BookRequestListFilter):
-        query = req_filter.filter(
-            select(
-                BookRequest.guid,
-                BookRequest.created_at,
-                BookRequest.status,
-                func.json_build_object(
-                    "guid",
-                    Book.guid,
-                    "title",
-                    Book.title,
-                    "pic_file_name",
-                    Book.pic_file_name,
-                    "description",
-                    Book.description,
-                    "isbn",
-                    Book.isbn,
-                    "rating",
-                    Book.rating,
-                ).label("book"),
-                func.json_build_object(
-                    "guid", User.guid, "name", User.name, "avatar", User.avatar, "login", User.login
-                ).label("user"),
-                func.json_build_object(
-                    "guid",
-                    BookcrossingPoint.guid,
-                    "title",
-                    BookcrossingPoint.title,
-                    "address_text",
-                    BookcrossingPoint.address_text,
-                ).label("point"),
-            )
-            .join(User, User.guid == BookRequest.user_id)
-            .join(Book, Book.guid == BookRequest.book_id)
-            .join(BookcrossingPoint, BookcrossingPoint.guid == BookRequest.point_id)
-        )
+        query = req_filter.filter(build_book_request_query())
 
         return query

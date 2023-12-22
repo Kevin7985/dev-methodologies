@@ -5,6 +5,8 @@ from fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel
 
 from src.model.publications import Post as m_Post
+from src.schemas.book_requests import Publisher
+from src.schemas.books import Book
 from src.utils.const import PostTypeEnum
 
 
@@ -22,6 +24,21 @@ class Post(PostBase):
     user_id: UUID
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class PostAllInfo(BaseModel):
+    guid: UUID
+    created_at: datetime
+    updated_at: datetime
+    user: Publisher
+    book: Book
+    type: PostTypeEnum
+    title: str | None
+    content: str | None
+    image: str | None
 
     class Config:
         orm_mode = True
