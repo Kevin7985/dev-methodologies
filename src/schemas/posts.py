@@ -35,6 +35,7 @@ class PostAllInfo(BaseModel):
     updated_at: datetime
     user: Publisher
     book: Book | None
+    book_rating: float | None
     type: PostTypeEnum
     title: str | None
     content: str | None

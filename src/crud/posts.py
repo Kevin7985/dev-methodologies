@@ -21,6 +21,7 @@ def build_post_query():
             Post.title,
             Post.type,
             Post.updated_at,
+            Post.book_rating,
             func.json_build_object(
                 "guid",
                 Book.guid,
