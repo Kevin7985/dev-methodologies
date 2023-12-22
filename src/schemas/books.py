@@ -37,8 +37,8 @@ class Genre(BaseModel):
 
 
 class Book(BaseModel):
-    guid: UUID
-    title: str
+    guid: UUID | None
+    title: str | None
     pic_file_name: str | None
     description: str | None
     isbn: str | None
