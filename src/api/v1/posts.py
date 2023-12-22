@@ -68,8 +68,8 @@ async def get_post_by_id(credentials: Credentials, db: DB, id: UUID):
 
 
 @router.put("/update", summary="Обновление поста")
-async def update_post(credentials: Credentials, db: DB, post: PostAllInfo):
-    # await checkAuth(db, credentials.credentials)
+async def update_post(credentials: Credentials, db: DB, post: PostBase):
+    await checkAuth(db, credentials.credentials)
 
     if not (await crud_post.get(db, post.guid)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Данный пост не найден")
