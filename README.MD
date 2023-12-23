@@ -17,5 +17,5 @@ alembic revision --autogenerate -m “крутое изменение”
 alembic upgrade head
 
 откатить:
-alembic downgrade -1 (или по номеру версииб см migrations/versions)
+alembic downgrade -1 (или по номеру версииб см migrations/versions или alembic history)
 
